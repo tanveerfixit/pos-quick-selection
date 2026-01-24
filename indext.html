@@ -1,407 +1,385 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Classification Tool</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore POS Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar { -ms-overflow-style: none;  scrollbar-width: none; }
+        
+        /* Custom horizontal scroll styling */
+        .scroll-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen flex items-start justify-center p-4 sm:p-8 font-[Inter]">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
-  <div class="w-full max-w-6xl bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100">
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">TechStore <span class="text-blue-600">POS</span></h1>
+        </div>
+        <div id="currentTime" class="text-sm font-medium text-slate-500 hidden md:block"></div>
+    </header>
 
-    <!-- Title and Description -->
-    <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Product Classification Tool</h1>
-    <p class="text-gray-500 mb-6 border-b pb-4">Mobile & Laptop shop — select category, search product, edit quantity/price and add.</p>
+    <!-- Main Container: Full width, no max-width box -->
+    <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6">
+        
+        <!-- LEFT: Selection & Search (Adjusted to 9 columns for wider workspace) -->
+        <section class="lg:col-span-8 xl:col-span-9 space-y-6">
+            
+            <!-- Hierarchy Pickers -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <div class="space-y-6">
+                    <!-- Category Selection -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">1. Category</label>
+                            <select id="categorySelect" onchange="selectCategory(this.value)" class="text-xs bg-transparent border-none font-bold text-blue-600 focus:ring-0 cursor-pointer"></select>
+                        </div>
+                        <div id="categoryQuickButtons" class="scroll-container no-scrollbar"></div>
+                    </div>
 
-    <!-- DROPDOWNS -->
-    <div class="flex flex-col sm:flex-row gap-6 mb-6">
-      <div class="flex-1">
-        <label class="block text-base font-bold text-blue-700 mb-2">Category (Macro)</label>
-        <select id="categorySelect" onchange="selectCategory(this.value)" class="w-full p-3 border-2 border-blue-500 rounded-lg bg-white focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition duration-150 cursor-pointer"></select>
-        <div id="categoryQuickButtons" class="mt-2 flex flex-wrap gap-2"></div>
-      </div>
+                    <!-- SubCategory Selection -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">2. Sub-Category</label>
+                            <select id="subCategorySelect" onchange="selectSubCategory(this.value)" class="text-xs bg-transparent border-none font-bold text-green-600 focus:ring-0 cursor-pointer disabled:opacity-0"></select>
+                        </div>
+                        <div id="subCategoryQuickButtons" class="scroll-container no-scrollbar"></div>
+                    </div>
 
-      <div class="flex-1">
-        <label class="block text-base font-bold text-green-700 mb-2">Subcategory (Group)</label>
-        <select id="subCategorySelect" onchange="selectSubCategory(this.value)" class="w-full p-3 border-2 border-green-500 rounded-lg bg-white focus:ring-4 focus:ring-green-200 focus:border-green-500 transition duration-150 disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer"></select>
-        <div id="subCategoryQuickButtons" class="mt-2 flex flex-wrap gap-2"></div>
-      </div>
+                    <!-- Type Selection -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">3. Model / Product Type</label>
+                            <select id="typeSelect" onchange="selectType(this.value)" class="text-xs bg-transparent border-none font-bold text-purple-600 focus:ring-0 cursor-pointer disabled:opacity-0"></select>
+                        </div>
+                        <div id="typeQuickButtons" class="scroll-container no-scrollbar"></div>
+                    </div>
+                </div>
 
-      <div class="flex-1">
-        <label class="block text-base font-bold text-purple-700 mb-2">Product Type (Specific)</label>
-        <select id="typeSelect" onchange="selectType(this.value)" class="w-full p-3 border-2 border-purple-500 rounded-lg bg-white focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition duration-150 disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer"></select>
-        <div id="typeQuickButtons" class="mt-2 flex flex-wrap gap-2"></div>
-      </div>
-    </div>
+                <!-- Product Search & Pricing -->
+                <div class="pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div class="md:col-span-6 relative">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Search Catalog</label>
+                        <input id="productNameInput" type="text" placeholder="Start typing brand or model..." 
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+                        <div id="searchResults" class="absolute w-full bg-white border border-slate-200 rounded-xl mt-2 hidden shadow-2xl z-50 max-h-64 overflow-y-auto no-scrollbar"></div>
+                    </div>
 
-    <!-- SEARCH + QTY + PRICE -->
-    <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
-      <div class="sm:col-span-2 relative">
-        <label class="block text-base font-bold text-gray-800 mb-2">Product Name Search (Optional)</label>
-        <input id="productNameInput" type="text" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition duration-150" placeholder="Search product name (e.g., 'Samsung Galaxy S23')..." />
-        <div id="searchResults" class="absolute w-full bg-white border border-gray-200 rounded-lg mt-1 hidden shadow-xl z-10 max-h-60 overflow-y-auto"></div>
-      </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Price ($)</label>
+                        <input id="priceInput" type="number" step="0.01" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
 
-      <div class="flex flex-col gap-2">
-        <label class="block text-base font-bold text-gray-800 mb-2">Qty</label>
-        <button id="qtyBtn" class="p-3 border rounded-lg text-left" onclick="editQty()">-</button>
-        <label class="block text-base font-bold text-gray-800 mt-2 mb-2">Price</label>
-        <button id="priceBtn" class="p-3 border rounded-lg text-left" onclick="editPrice()">-</button>
-      </div>
-    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Qty</label>
+                        <input id="qtyInput" type="number" min="1" value="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
 
-    <div class="mb-6 flex items-center gap-3">
-      <button id="addProductBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" onclick="addProduct()">Add Product</button>
-      <div id="addedCount" class="text-sm text-gray-500">0 products added</div>
-    </div>
+                    <div class="md:col-span-2">
+                        <button onclick="addProduct()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-    <!-- PRODUCT ADDED OUTPUT -->
-    <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm text-gray-700">
-      <h3 class="text-lg font-bold text-blue-800 mb-1">Product added</h3>
-      <div id="debugArea" class="font-mono whitespace-pre-line"></div>
-    </div>
+            <!-- Status Message Toast Area -->
+            <div id="statusMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+        </section>
 
-  </div>
+        <!-- RIGHT: Cart / Invoice (Narrower 3-4 columns) -->
+        <section class="lg:col-span-4 xl:col-span-3 flex flex-col h-[calc(100vh-140px)]">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h2 class="font-bold text-lg flex items-center gap-2">
+                        Order
+                        <span id="cartBadge" class="bg-slate-100 text-slate-600 text-xs py-0.5 px-2 rounded-full">0</span>
+                    </h2>
+                    <button onclick="clearCart()" class="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Clear</button>
+                </div>
 
-  <!-- MAIN JAVASCRIPT -->
-  <script>
-    // ----------------------
-    // SHOP DATA: Mobile & Laptop store
-    // 6 categories, each with 6 subcategories, each subcategory has 4 product types (brands/models)
-    // ----------------------
+                <!-- Cart Items Scroll Area -->
+                <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+                    <!-- Empty State -->
+                    <div id="emptyCartState" class="flex flex-col items-center justify-center h-full text-slate-400 space-y-2 opacity-60">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <p class="text-xs">No items in order</p>
+                    </div>
+                </div>
 
-    const initialMockData = [
-      {
-        category: 'Smartphones',
-        subCategories: [
-          { name: 'Flagship', types: [ {name:'Galaxy S Series', brands:['Samsung']}, {name:'iPhone Pro', brands:['Apple']}, {name:'Pixel Pro', brands:['Google']}, {name:'OnePlus Ultra', brands:['OnePlus']} ] },
-          { name: 'Midrange', types: [ {name:'Galaxy A Series', brands:['Samsung']}, {name:'iPhone SE', brands:['Apple']}, {name:'Pixel A', brands:['Google']}, {name:'Xiaomi Redmi', brands:['Xiaomi']} ] },
-          { name: 'Budget', types: [ {name:'Basic Android', brands:['Realme']}, {name:'Feature Phone', brands:['Nokia']}, {name:'Entry Xiaomi', brands:['Xiaomi']}, {name:'Moto G', brands:['Motorola']} ] },
-          { name: 'Gaming Phones', types: [ {name:'ROG', brands:['Asus']}, {name:'Black Shark', brands:['Xiaomi']}, {name:'RedMagic', brands:['ZTE']}, {name:'Legion', brands:['Lenovo']} ] },
-          { name: 'Refurbished', types: [ {name:'Refurb iPhone', brands:['Apple']}, {name:'Refurb Samsung', brands:['Samsung']}, {name:'Refurb Pixel', brands:['Google']}, {name:'Refurb OnePlus', brands:['OnePlus']} ] },
-          { name: '5G Devices', types: [ {name:'5G Android', brands:['Samsung']}, {name:'5G iPhone', brands:['Apple']}, {name:'5G Pixel', brands:['Google']}, {name:'5G Xiaomi', brands:['Xiaomi']} ] }
-        ]
-      },
+                <!-- Totals Section -->
+                <div class="p-6 bg-slate-50 border-t border-slate-200 space-y-3">
+                    <div class="flex justify-between text-xs text-slate-500 uppercase font-bold tracking-tight">
+                        <span>Subtotal</span>
+                        <span id="subtotalLabel">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 uppercase font-bold tracking-tight">
+                        <span>Tax (8%)</span>
+                        <span id="taxLabel">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-lg font-extrabold text-slate-900 pt-2 border-t border-slate-200">
+                        <span>Total</span>
+                        <span id="totalLabel" class="text-blue-600">$0.00</span>
+                    </div>
+                    <button id="checkoutBtn" disabled class="w-full mt-4 bg-slate-900 disabled:bg-slate-300 text-white font-bold py-4 rounded-xl shadow-xl transition-all active:scale-95 uppercase tracking-widest text-xs">
+                        Process Payment
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
 
-      {
-        category: 'Laptops',
-        subCategories: [
-          { name: 'Ultrabooks', types: [ {name:'XPS', brands:['Dell']}, {name:'MacBook Air', brands:['Apple']}, {name:'ZenBook', brands:['Asus']}, {name:'Spectre', brands:['HP']} ] },
-          { name: 'Gaming', types: [ {name:'ROG Laptop', brands:['Asus']}, {name:'Alienware', brands:['Dell']}, {name:'Legion Laptop', brands:['Lenovo']}, {name:'Omen', brands:['HP']} ] },
-          { name: 'Business', types: [ {name:'ThinkPad', brands:['Lenovo']}, {name:'Latitude', brands:['Dell']}, {name:'EliteBook', brands:['HP']}, {name:'MacBook Pro', brands:['Apple']} ] },
-          { name: '2-in-1', types: [ {name:'Surface Pro', brands:['Microsoft']}, {name:'Yoga', brands:['Lenovo']}, {name:'Envy x360', brands:['HP']}, {name:'Flip', brands:['Asus']} ] },
-          { name: 'Chromebook', types: [ {name:'Chromebook Plus', brands:['Acer']}, {name:'Chromebook Spin', brands:['Asus']}, {name:'Galaxy Chromebook', brands:['Samsung']}, {name:'HP Chromebook', brands:['HP']} ] },
-          { name: 'Refurbished', types: [ {name:'Refurb MacBook', brands:['Apple']}, {name:'Refurb Dell', brands:['Dell']}, {name:'Refurb Lenovo', brands:['Lenovo']}, {name:'Refurb HP', brands:['HP']} ] }
-        ]
-      },
+    <script>
+        // ----------------------
+        // DATA LAYER
+        // ----------------------
+        const initialMockData = [
+            { category: 'Phones', subCategories: [
+                { name: 'iPhones', types: [ {name:'iPhone 13', brands:['Apple'], basePrice: 599}, {name:'iPhone 14', brands:['Apple'], basePrice: 699}, {name:'iPhone 15', brands:['Apple'], basePrice: 799}, {name:'iPhone 16', brands:['Apple'], basePrice: 899} ] },
+                { name: 'Samsung', types: [ {name:'Galaxy A33', brands:['Samsung'], basePrice: 299}, {name:'Galaxy A34', brands:['Samsung'], basePrice: 349}, {name:'Galaxy S24', brands:['Samsung'], basePrice: 799} ] },
+                { name: 'Redmi', types: [ {name:'Note 12', brands:['Xiaomi'], basePrice: 199}, {name:'Note 13 Pro', brands:['Xiaomi'], basePrice: 299} ] },
+                { name: 'Pixels', types: [ {name:'Pixel 7', brands:['Google'], basePrice: 499}, {name:'Pixel 8 Pro', brands:['Google'], basePrice: 999} ] }
+            ]},
+            { category: 'Laptops', subCategories: [
+                { name: 'Dell', types: [ {name:'XPS 13', brands:['Dell'], basePrice: 1099}, {name:'Inspiron', brands:['Dell'], basePrice: 649} ] },
+                { name: 'Hp', types: [ {name:'Spectre x360', brands:['HP'], basePrice: 1249}, {name// ... rest of the same logic
+                : 'Pavilion', brands:['HP'], basePrice: 599} ] },
+                { name: 'ChromeBook', types: [ {name:'Pixelbook Go', brands:['Google'], basePrice: 649}, {name:'Acer Chromebook', brands:['Acer'], basePrice: 299} ] },
+                { name: 'Lenovo', types: [ {name:'ThinkPad X1', brands:['Lenovo'], basePrice: 1399}, {name:'Yoga 7i', brands:['Lenovo'], basePrice: 849} ] }
+            ]},
+            { category: 'Tablets', subCategories: [
+                { name: 'iPad', types: [ {name:'iPad Air', brands:['Apple'], basePrice: 599}, {name:'iPad Pro', brands:['Apple'], basePrice: 799} ] },
+                { name: 'Galaxy', types: [ {name:'Tab S9', brands:['Samsung'], basePrice: 699}, {name:'Tab A8', brands:['Samsung'], basePrice: 229} ] },
+                { name: 'Android', types: [ {name:'Pixel Tablet', brands:['Google'], basePrice: 499}, {name:'Lenovo Tab', brands:['Lenovo'], basePrice: 179} ] }
+            ]},
+            { category: 'Audio', subCategories: [
+                { name: 'BT Speakers', types: [ {name:'Flip 6', brands:['JBL'], basePrice: 129}, {name:'SoundLink', brands:['Bose'], basePrice: 149} ] },
+                { name: 'Wired Headphones', types: [ {name:'MDR-7506', brands:['Sony'], basePrice: 99} ] },
+                { name: 'Bluetooth Headphones', types: [ {name:'WH-1000XM5', brands:['Sony'], basePrice: 399}, {name:'QC45', brands:['Bose'], basePrice: 329} ] },
+                { name: 'True Wireless Earbuds (TWS)', types: [ {name:'WF-1000XM5', brands:['Sony'], basePrice: 299}, {name:'Buds 2 Pro', brands:['Samsung'], basePrice: 199} ] },
+                { name: 'AirPods', types: [ {name:'AirPods Pro 2', brands:['Apple'], basePrice: 249}, {name:'AirPods 3', brands:['Apple'], basePrice: 169} ] },
+                { name: 'EarPods', types: [ {name:'EarPods USB-C', brands:['Apple'], basePrice: 19} ] }
+            ]},
+            { category: 'Accessories', subCategories: [
+                { name: 'Cases', types: [ {name:'Silicone Case', brands:['Generic'], basePrice: 15} ] },
+                { name: 'Plugs/Charger', types: [ {name:'20W Adapter', brands:['Apple'], basePrice: 19} ] },
+                { name: 'Cables', types: [ {name:'USB-C to C', brands:['Anker'], basePrice: 12} ] },
+                { name: 'Screen Protection', types: [ {name:'Tempered Glass', brands:['Generic'], basePrice: 10} ] },
+                { name: 'Phone Holder', types: [ {name:'MagSafe Mount', brands:['Belkin'], basePrice: 29} ] },
+                { name: 'Adapter', types: [ {name:'USB-C Hub', brands:['Satechi'], basePrice: 59} ] },
+                { name: 'Power Bank', types: [ {name:'20k mAh Bank', brands:['Anker'], basePrice: 49} ] },
+                { name: 'Selfi Stick', types: [ {name:'Tripod Stick', brands:['Generic'], basePrice: 25} ] },
+                { name: 'Gaming Controller', types: [ {name:'DualSense', brands:['Sony'], basePrice: 69}, {name:'Xbox Controller', brands:['MS'], basePrice: 59} ] }
+            ]},
+            { category: 'Services', subCategories: [
+                { name: 'Repair', types: [ {name:'Screen Repair', brands:['Service'], basePrice: 149}, {name:'Battery Swap', brands:['Service'], basePrice: 79} ] },
+                { name: 'Warranty', types: [ {name:'Extended 1yr', brands:['Care'], basePrice: 99} ] }
+            ]}
+        ];
 
-      {
-        category: 'Tablets',
-        subCategories: [
-          { name: 'iPad', types: [ {name:'iPad Pro', brands:['Apple']}, {name:'iPad Air', brands:['Apple']}, {name:'iPad Mini', brands:['Apple']}, {name:'iPad (Standard)', brands:['Apple']} ] },
-          { name: 'Android Tablets', types: [ {name:'Galaxy Tab S', brands:['Samsung']}, {name:'Galaxy Tab A', brands:['Samsung']}, {name:'Lenovo Tab', brands:['Lenovo']}, {name:'Xiaomi Pad', brands:['Xiaomi']} ] },
-          { name: 'Windows Tablets', types: [ {name:'Surface Go', brands:['Microsoft']}, {name:'Surface Pro', brands:['Microsoft']}, {name:'Lenovo Duet', brands:['Lenovo']}, {name:'HP Elite', brands:['HP']} ] },
-          { name: 'Kids Tablets', types: [ {name:'Kids Tablet 7"', brands:['VTech']}, {name:'Kids Fire', brands:['Amazon']}, {name:'LeapPad', brands:['LeapFrog']}, {name:'Kids Tab', brands:['Kurio']} ] },
-          { name: 'Stylus & Pens', types: [ {name:'Apple Pencil', brands:['Apple']}, {name:'S Pen', brands:['Samsung']}, {name:'Surface Pen', brands:['Microsoft']}, {name:'Generic Stylus', brands:['Logitech']} ] },
-          { name: 'Refurbished', types: [ {name:'Refurb iPad', brands:['Apple']}, {name:'Refurb Galaxy Tab', brands:['Samsung']}, {name:'Refurb Surface', brands:['Microsoft']}, {name:'Refurb Lenovo Tab', brands:['Lenovo']} ] }
-        ]
-      },
+        let productList = [];
+        let cart = [];
+        let uiState = {
+            selectedCategory: null,
+            selectedSubCategory: null,
+            selectedType: null,
+            currentProduct: null
+        };
 
-      {
-        category: 'Accessories',
-        subCategories: [
-          { name: 'Chargers', types: [ {name:'MagSafe Charger', brands:['Apple']}, {name:'USB-C PD', brands:['Anker']}, {name:'Wireless Pad', brands:['Belkin']}, {name:'Car Charger', brands:['Baseus']} ] },
-          { name: 'Cables', types: [ {name:'USB-C Cable', brands:['Anker']}, {name:'Lightning Cable', brands:['Apple']}, {name:'Micro USB', brands:['Samsung']}, {name:'HDMI Cable', brands:['Belkin']} ] },
-          { name: 'Cases & Covers', types: [ {name:'Silicone Case', brands:['Apple']}, {name:'Rugged Case', brands:['OtterBox']}, {name:'Leather Cover', brands:['Apple']}, {name:'Laptop Sleeve', brands:['Tomtoc']} ] },
-          { name: 'Screen Protectors', types: [ {name:'Tempered Glass', brands:['Spigen']}, {name:'Matte Protector', brands:['Zagg']}, {name:'Privacy Film', brands:['3M']}, {name:'Anti-Glare', brands:['Omoton']} ] },
-          { name: 'Audio', types: [ {name:'Earbuds', brands:['Apple']}, {name:'Over-ear Headphones', brands:['Sony']}, {name:'Wireless Earbuds', brands:['Samsung']}, {name:'Gaming Headset', brands:['Razer']} ] },
-          { name: 'Power Banks', types: [ {name:'10k mAh', brands:['Anker']}, {name:'20k mAh', brands:['RAVPower']}, {name:'Wireless Power Bank', brands:['Mophie']}, {name:'Solar Power Bank', brands:['Goal Zero']} ] }
-        ]
-      },
+        const els = {
+            categorySelect: document.getElementById('categorySelect'),
+            subCategorySelect: document.getElementById('subCategorySelect'),
+            typeSelect: document.getElementById('typeSelect'),
+            catBtns: document.getElementById('categoryQuickButtons'),
+            subBtns: document.getElementById('subCategoryQuickButtons'),
+            typeBtns: document.getElementById('typeQuickButtons'),
+            nameInput: document.getElementById('productNameInput'),
+            priceInput: document.getElementById('priceInput'),
+            qtyInput: document.getElementById('qtyInput'),
+            results: document.getElementById('searchResults'),
+            cartItems: document.getElementById('cartItems'),
+            subtotal: document.getElementById('subtotalLabel'),
+            tax: document.getElementById('taxLabel'),
+            total: document.getElementById('totalLabel'),
+            cartBadge: document.getElementById('cartBadge'),
+            checkoutBtn: document.getElementById('checkoutBtn'),
+            status: document.getElementById('statusMessage'),
+            empty: document.getElementById('emptyCartState')
+        };
 
-      {
-        category: 'Networking',
-        subCategories: [
-          { name: 'Routers', types: [ {name:'Home Router', brands:['TP-Link']}, {name:'Mesh System', brands:['Google']}, {name:'Gaming Router', brands:['Netgear']}, {name:'Business Router', brands:['Ubiquiti']} ] },
-          { name: 'Modems', types: [ {name:'Cable Modem', brands:['Motorola']}, {name:'DSL Modem', brands:['TP-Link']}, {name:'Combo Modem-Router', brands:['Netgear']}, {name:'Fiber ONT', brands:['Huawei']} ] },
-          { name: 'Range Extenders', types: [ {name:'WiFi Extender', brands:['TP-Link']}, {name:'Powerline Adapter', brands:['Devolo']}, {name:'Mesh Extender', brands:['Netgear']}, {name:'Outdoor Extender', brands:['Ubiquiti']} ] },
-          { name: 'Switches', types: [ {name:'Gigabit Switch', brands:['Netgear']}, {name:'Managed Switch', brands:['Cisco']}, {name:'PoE Switch', brands:['TP-Link']}, {name:'Unmanaged Switch', brands:['D-Link']} ] },
-          { name: 'Access Points', types: [ {name:'Indoor AP', brands:['Ubiquiti']}, {name:'Outdoor AP', brands:['Ubiquiti']}, {name:'Enterprise AP', brands:['Cisco']}, {name:'Guest AP', brands:['Aruba']} ] },
-          { name: 'Cables & Adapters', types: [ {name:'Ethernet Cable', brands:['Belkin']}, {name:'Fiber Cable', brands:['Corning']}, {name:'USB-Ethernet', brands:['Anker']}, {name:'USB-C Adapter', brands:['Belkin']} ] }
-        ]
-      },
+        function init() {
+            flattenData();
+            renderPickers();
+            updateTime();
+            setInterval(updateTime, 1000);
+            document.addEventListener('keypress', (e) => { if(e.key === 'Enter') addProduct(); });
+        }
 
-      {
-        category: 'Wearables',
-        subCategories: [
-          { name: 'Smartwatches', types: [ {name:'Apple Watch', brands:['Apple']}, {name:'Galaxy Watch', brands:['Samsung']}, {name:'Fitbit Watch', brands:['Fitbit']}, {name:'Garmin', brands:['Garmin']} ] },
-          { name: 'Fitness Bands', types: [ {name:'Fitbit Band', brands:['Fitbit']}, {name:'Mi Band', brands:['Xiaomi']}, {name:'Garmin Band', brands:['Garmin']}, {name:'Huawei Band', brands:['Huawei']} ] },
-          { name: 'Earbuds', types: [ {name:'AirPods', brands:['Apple']}, {name:'Galaxy Buds', brands:['Samsung']}, {name:'Sony WF', brands:['Sony']}, {name:'Jabra Elite', brands:['Jabra']} ] },
-          { name: 'VR Headsets', types: [ {name:'Quest', brands:['Meta']}, {name:'Vive', brands:['HTC']}, {name:'PlayStation VR', brands:['Sony']}, {name:'Valve Index', brands:['Valve']} ] },
-          { name: 'Smart Glasses', types: [ {name:'Ray-Ban Stories', brands:['Meta']}, {name:'Spectacles', brands:['Snap']}, {name:'Smart AR Glasses', brands:['Nreal']}, {name:'Enterprise Glasses', brands:['Vuzix']} ] },
-          { name: 'Wearable Chargers', types: [ {name:'Watch Charger', brands:['Apple']}, {name:'Earbud Case Charger', brands:['Samsung']}, {name:'Wireless Charger Pad', brands:['Anker']}, {name:'Portable Charger', brands:['Anker']} ] }
-        ]
-      }
-
-    ];
-
-    let mockData = null;
-    let productList = [];
-    let ranked = { categories: [], sub: {}, types: {} };
-
-    let selectedCategory = null;
-    let selectedSubCategory = null;
-    let selectedType = null;
-
-    let currentSelectedProduct = null;
-    let addedProducts = [];
-
-    const categorySelect = document.getElementById('categorySelect');
-    const subCategorySelect = document.getElementById('subCategorySelect');
-    const typeSelect = document.getElementById('typeSelect');
-
-    const categoryQuickButtons = document.getElementById('categoryQuickButtons');
-    const subCategoryQuickButtons = document.getElementById('subCategoryQuickButtons');
-    const typeQuickButtons = document.getElementById('typeQuickButtons');
-
-    const productNameInput = document.getElementById('productNameInput');
-    const searchResults = document.getElementById('searchResults');
-    const debugArea = document.getElementById('debugArea');
-    const qtyBtn = document.getElementById('qtyBtn');
-    const priceBtn = document.getElementById('priceBtn');
-    const addedCount = document.getElementById('addedCount');
-
-    function loadData() {
-      mockData = initialMockData;
-      productList = [];
-      flattenProducts();
-      computeRankings();
-
-      renderCategories();
-      renderSubCategories();
-      renderTypes();
-
-      renderCategoryQuickButtons();
-      renderSubCategoryQuickButtons();
-      renderTypeQuickButtons();
-
-      resetSelectionUI();
-    }
-
-    // Flatten into productList with quantity and defaultPrice
-    function flattenProducts() {
-      mockData.forEach(cat => {
-        cat.subCategories.forEach(sub => {
-          sub.types.forEach(t => {
-            t.brands.forEach(b => {
-              productList.push({
-                name: `${b} ${t.name}`,
-                brand: b,
-                type: t.name,
-                category: cat.category,
-                subCategory: sub.name,
-                quantity: Math.floor(Math.random() * 20) + 1,
-                defaultPrice: (Math.floor(Math.random() * 900) + 20) + ".00"
-              });
+        function flattenData() {
+            productList = [];
+            initialMockData.forEach(cat => {
+                cat.subCategories.forEach(sub => {
+                    sub.types.forEach(t => {
+                        t.brands.forEach(b => {
+                            productList.push({
+                                id: Math.random().toString(36).substr(2, 9),
+                                name: `${b} ${t.name}`,
+                                brand: b,
+                                type: t.name,
+                                category: cat.category,
+                                subCategory: sub.name,
+                                price: t.basePrice || 0
+                            });
+                        });
+                    });
+                });
             });
-          });
+        }
+
+        function renderPickers() {
+            els.categorySelect.innerHTML = `<option value="">Select Category</option>` + 
+                initialMockData.map(c => `<option value="${c.category}">${c.category}</option>`).join('');
+            renderQuickButtons();
+            updateDependentPickers();
+        }
+
+        function updateDependentPickers() {
+            const catData = initialMockData.find(c => c.category === uiState.selectedCategory);
+            els.subCategorySelect.disabled = !catData;
+            els.subCategorySelect.innerHTML = `<option value="">Select Sub</option>` + 
+                (catData ? catData.subCategories.map(s => `<option value="${s.name}">${s.name}</option>`).join('') : '');
+            const subData = catData?.subCategories.find(s => s.name === uiState.selectedSubCategory);
+            els.typeSelect.disabled = !subData;
+            els.typeSelect.innerHTML = `<option value="">Select Type</option>` + 
+                (subData ? subData.types.map(t => `<option value="${t.name}">${t.name}</option>`).join('') : '');
+            els.categorySelect.value = uiState.selectedCategory || '';
+            els.subCategorySelect.value = uiState.selectedSubCategory || '';
+            els.typeSelect.value = uiState.selectedType || '';
+            renderQuickButtons();
+        }
+
+        function renderQuickButtons() {
+            els.catBtns.innerHTML = initialMockData.map(c => {
+                const isActive = uiState.selectedCategory === c.category;
+                return `<button onclick="selectCategory('${c.category}')" class="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase rounded-xl border transition-all whitespace-nowrap ${isActive ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-200'}">${c.category}</button>`;
+            }).join('');
+            const catData = initialMockData.find(c => c.category === uiState.selectedCategory);
+            els.subBtns.innerHTML = catData ? catData.subCategories.map(s => {
+                const isActive = uiState.selectedSubCategory === s.name;
+                return `<button onclick="selectSubCategory('${s.name}')" class="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase rounded-xl border transition-all whitespace-nowrap ${isActive ? 'bg-green-600 border-green-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-green-50 hover:border-green-200'}">${s.name}</button>`;
+            }).join('') : `<div class="text-xs text-slate-300 py-2 italic">Select a category first</div>`;
+            const subData = catData?.subCategories.find(s => s.name === uiState.selectedSubCategory);
+            els.typeBtns.innerHTML = subData ? subData.types.map(t => {
+                const isActive = uiState.selectedType === t.name;
+                return `<button onclick="selectType('${t.name}')" class="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase rounded-xl border transition-all whitespace-nowrap ${isActive ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-purple-50 hover:border-purple-200'}">${t.name}</button>`;
+            }).join('') : `<div class="text-xs text-slate-300 py-2 italic">Select a sub-category first</div>`;
+        }
+
+        window.selectCategory = (cat) => { uiState.selectedCategory = cat; uiState.selectedSubCategory = null; uiState.selectedType = null; updateDependentPickers(); autoFillProduct(); };
+        window.selectSubCategory = (sub) => { uiState.selectedSubCategory = sub; uiState.selectedType = null; updateDependentPickers(); autoFillProduct(); };
+        window.selectType = (type) => { uiState.selectedType = type; updateDependentPickers(); autoFillProduct(); };
+
+        function autoFillProduct() {
+            const match = productList.find(p => p.category === uiState.selectedCategory && p.subCategory === uiState.selectedSubCategory && p.type === uiState.selectedType);
+            if(match) populateForm(match);
+        }
+
+        function populateForm(product) {
+            uiState.currentProduct = product;
+            els.nameInput.value = product.name;
+            els.priceInput.value = product.price;
+            els.qtyInput.value = 1;
+            els.results.classList.add('hidden');
+        }
+
+        els.nameInput.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            if(!q) { els.results.classList.add('hidden'); return; }
+            const hits = productList.filter(p => p.name.toLowerCase().includes(q));
+            els.results.innerHTML = hits.map(p => `
+                <div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0" onclick='handleSearchSelect(${JSON.stringify(p)})'>
+                    <div class="font-bold text-sm text-slate-800">${p.name}</div>
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">${p.category} • ${p.subCategory}</div>
+                </div>
+            `).join('');
+            els.results.classList.remove('hidden');
         });
-      });
-    }
 
-    function computeRankings() {
-      ranked.categories = mockData.map(cat => ({ name: cat.category, sales: 0 })).slice();
+        window.handleSearchSelect = (p) => { populateForm(p); uiState.selectedCategory = p.category; uiState.selectedSubCategory = p.subCategory; uiState.selectedType = p.type; updateDependentPickers(); };
 
-      ranked.sub = {};
-      mockData.forEach(cat => {
-        ranked.sub[cat.category] = cat.subCategories.map(sub => ({ name: sub.name, sales: 0 }));
-      });
+        window.addProduct = () => {
+            const name = els.nameInput.value;
+            const price = parseFloat(els.priceInput.value);
+            const qty = parseInt(els.qtyInput.value);
+            if(!name || isNaN(price) || isNaN(qty) || qty < 1) { showStatus('Missing product info', 'error'); return; }
+            cart.push({ cartId: Date.now(), name, price, qty, total: price * qty });
+            renderCart();
+            showStatus(`Added ${name}`, 'success');
+            els.nameInput.value = '';
+            els.qtyInput.value = 1;
+        };
 
-      ranked.types = {};
-      mockData.forEach(cat => {
-        cat.subCategories.forEach(sub => {
-          ranked.types[sub.name] = sub.types.map(t => ({ name: t.name, sales: 0 }));
-        });
-      });
-    }
+        window.removeFromCart = (cartId) => { cart = cart.filter(item => item.cartId !== cartId); renderCart(); };
+        window.clearCart = () => { cart = []; renderCart(); };
 
-    // Renderers
-    function renderCategories() {
-      const options = ranked.categories.map(cat => `<option value="${cat.name}" ${selectedCategory===cat.name? 'selected':''}>${cat.name}</option>`).join('');
-      categorySelect.innerHTML = `<option value="" disabled ${selectedCategory===null? 'selected':''}>--- Select a Category ---</option>` + options;
-    }
+        function renderCart() {
+            els.cartBadge.textContent = cart.length;
+            els.checkoutBtn.disabled = cart.length === 0;
+            els.empty.style.display = cart.length === 0 ? 'flex' : 'none';
+            els.cartItems.innerHTML = cart.map(item => `
+                <div class="bg-white border border-slate-100 p-3 rounded-xl shadow-sm flex justify-between items-center animate-in fade-in slide-in-from-right-4 duration-200">
+                    <div class="max-w-[150px]">
+                        <div class="font-bold text-[13px] text-slate-800 truncate">${item.name}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${item.qty} × $${item.price.toFixed(2)}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="font-bold text-blue-600 text-xs">$${item.total.toFixed(2)}</div>
+                        <button onclick="removeFromCart(${item.cartId})" class="p-1.5 text-slate-300 hover:text-red-500 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            const sub = cart.reduce((acc, i) => acc + i.total, 0);
+            const tax = sub * 0.08;
+            const total = sub + tax;
+            els.subtotal.textContent = `$${sub.toFixed(2)}`;
+            els.tax.textContent = `$${tax.toFixed(2)}`;
+            els.total.textContent = `$${total.toFixed(2)}`;
+        }
 
-    function renderSubCategories() {
-      let options = `<option value="" disabled ${selectedSubCategory===null? 'selected':''}>--- Select a Subcategory ---</option>`;
-      if (selectedCategory && ranked.sub[selectedCategory]) {
-        options += ranked.sub[selectedCategory].map(s => `<option value="${s.name}" ${selectedSubCategory===s.name? 'selected':''}>${s.name}</option>`).join('');
-      }
-      subCategorySelect.innerHTML = options;
-      subCategorySelect.disabled = !selectedCategory;
-    }
+        function showStatus(msg, type) {
+            els.status.textContent = msg;
+            els.status.className = `p-4 rounded-xl text-sm font-bold text-center fixed bottom-6 left-6 z-[100] shadow-2xl animate-bounce ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+            els.status.classList.remove('hidden');
+            setTimeout(() => els.status.classList.add('hidden'), 3000);
+        }
 
-    function renderTypes() {
-      let options = `<option value="" disabled ${selectedType===null? 'selected':''}>--- Select a Product Type ---</option>`;
-      if (selectedSubCategory && ranked.types[selectedSubCategory]) {
-        options += ranked.types[selectedSubCategory].map(t => `<option value="${t.name}" ${selectedType===t.name? 'selected':''}>${t.name}</option>`).join('');
-      }
-      typeSelect.innerHTML = options;
-      typeSelect.disabled = !selectedSubCategory;
-    }
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
 
-    function renderCategoryQuickButtons() {
-      categoryQuickButtons.innerHTML = '';
-      ranked.categories.slice(0,4).forEach(cat => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'px-2 py-1 text-xs rounded-full border border-blue-500 text-blue-700 hover:bg-blue-50 active:bg-blue-100 transition';
-        btn.textContent = cat.name;
-        btn.onclick = () => selectCategory(cat.name);
-        categoryQuickButtons.appendChild(btn);
-      });
-    }
-
-    function renderSubCategoryQuickButtons() {
-      subCategoryQuickButtons.innerHTML = '';
-      if (!selectedCategory) return;
-      ranked.sub[selectedCategory].slice(0,4).forEach(sub => {
-        const btn = document.createElement('button');
-        btn.type='button';
-        btn.className='px-2 py-1 text-xs rounded-full border border-green-500 text-green-700 hover:bg-green-50 active:bg-green-100 transition';
-        btn.textContent = sub.name;
-        btn.onclick = () => selectSubCategory(sub.name);
-        subCategoryQuickButtons.appendChild(btn);
-      });
-    }
-
-    function renderTypeQuickButtons() {
-      typeQuickButtons.innerHTML = '';
-      if (!selectedSubCategory) return;
-      ranked.types[selectedSubCategory].slice(0,4).forEach(t => {
-        const btn = document.createElement('button');
-        btn.type='button';
-        btn.className='px-2 py-1 text-xs rounded-full border border-purple-500 text-purple-700 hover:bg-purple-50 active:bg-purple-100 transition';
-        btn.textContent = t.name;
-        btn.onclick = () => selectType(t.name);
-        typeQuickButtons.appendChild(btn);
-      });
-    }
-
-    // Selection handlers
-    window.selectCategory = function(cat) {
-      selectedCategory = cat;
-      selectedSubCategory = null;
-      selectedType = null;
-      renderCategories(); renderSubCategories(); renderTypes();
-      renderSubCategoryQuickButtons(); renderTypeQuickButtons(); resetSelectionUI();
-    }
-
-    window.selectSubCategory = function(sub) {
-      selectedSubCategory = sub; selectedType = null;
-      renderSubCategories(); renderTypes(); renderTypeQuickButtons(); resetSelectionUI();
-    }
-
-    window.selectType = function(t) {
-      selectedType = t; renderTypes(); resetSelectionUI();
-    }
-
-    // Search
-    productNameInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      if (!q) { searchResults.classList.add('hidden'); return; }
-      const results = productList.filter(p => p.name.toLowerCase().includes(q));
-      searchResults.innerHTML = results.slice(0,20).map(p => `
-        <div class="p-3 hover:bg-blue-50 cursor-pointer text-gray-700 transition duration-100" onclick="selectProduct('${p.name.replace(/'/g, "\'")}')">
-          <span class=\"font-semibold\">${p.name}</span> <span class=\"text-xs text-gray-400 ml-2\">(${p.category} > ${p.subCategory})</span>
-        </div>`).join('');
-      searchResults.classList.remove('hidden');
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!productNameInput.contains(event.target) && !searchResults.contains(event.target)) searchResults.classList.add('hidden');
-    });
-
-    window.selectProduct = function(name) {
-      const p = productList.find(pp => pp.name === name);
-      if (!p) return;
-      productNameInput.value = p.name; searchResults.classList.add('hidden');
-
-      selectedCategory = p.category; selectedSubCategory = p.subCategory; selectedType = p.type; currentSelectedProduct = Object.assign({}, p);
-
-      renderCategories(); renderSubCategories(); renderTypes(); renderCategoryQuickButtons(); renderSubCategoryQuickButtons(); renderTypeQuickButtons();
-      updateSelectionUI();
-    }
-
-    // UI for qty/price
-    function resetSelectionUI() {
-      currentSelectedProduct = null;
-      productNameInput.value = '';
-      qtyBtn.textContent = '-';
-      priceBtn.textContent = '-';
-      debugArea.textContent = '';
-    }
-
-    function updateSelectionUI() {
-      if (!currentSelectedProduct) {
-        qtyBtn.textContent = '-'; priceBtn.textContent = '-'; return;
-      }
-      qtyBtn.textContent = 'Qty: ' + currentSelectedProduct.quantity;
-      priceBtn.textContent = 'Price: $' + currentSelectedProduct.defaultPrice;
-    }
-
-    function editQty() {
-      if (!currentSelectedProduct) { alert('Select a product first (search or dropdown).'); return; }
-      const val = prompt('Enter quantity', currentSelectedProduct.quantity);
-      if (val === null) return;
-      const n = parseInt(val);
-      if (isNaN(n) || n < 0) { alert('Invalid quantity'); return; }
-      currentSelectedProduct.quantity = n; updateSelectionUI();
-    }
-
-    function editPrice() {
-      if (!currentSelectedProduct) { alert('Select a product first (search or dropdown).'); return; }
-      const val = prompt('Enter price (number only)', currentSelectedProduct.defaultPrice);
-      if (val === null) return;
-      const num = parseFloat(val);
-      if (isNaN(num) || num < 0) { alert('Invalid price'); return; }
-      currentSelectedProduct.defaultPrice = Number(num).toFixed(2);
-      updateSelectionUI();
-    }
-
-    function addProduct() {
-      if (!currentSelectedProduct) { alert('Select a product to add first.'); return; }
-      // Push a shallow copy
-      addedProducts.push(Object.assign({}, currentSelectedProduct));
-      addedCount.textContent = `${addedProducts.length} product(s) added`;
-      // Show single-line output replacing previous
-      debugArea.textContent = `Product added: ${currentSelectedProduct.name} | ${currentSelectedProduct.category} > ${currentSelectedProduct.subCategory} > ${currentSelectedProduct.type} | Qty: ${currentSelectedProduct.quantity} | Price: $${currentSelectedProduct.defaultPrice}`;
-    }
-
-    // When user selects dropdown values (not search), pick a default product to edit
-    subCategorySelect.addEventListener('change', () => {
-      // pick first product matching category/sub/type if possible
-      pickFirstMatch();
-    });
-    typeSelect.addEventListener('change', () => { pickFirstMatch(); });
-    categorySelect.addEventListener('change', () => { pickFirstMatch(); });
-
-    function pickFirstMatch() {
-      // find a product matching current selections
-      const p = productList.find(pp => pp.category === selectedCategory && pp.subCategory === selectedSubCategory && pp.type === selectedType);
-      if (p) {
-        currentSelectedProduct = Object.assign({}, p);
-        productNameInput.value = currentSelectedProduct.name;
-        updateSelectionUI();
-      } else {
-        currentSelectedProduct = null; updateSelectionUI();
-      }
-    }
-
-    // initial load
-    loadData();
-  </script>
-
+        init();
+    </script>
 </body>
 </html>
