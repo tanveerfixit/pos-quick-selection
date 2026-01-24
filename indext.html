@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Classification Tool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex items-start justify-center p-4 sm:p-8 font-[Inter]">
+
+  <div class="w-full max-w-6xl bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100">
+
+    <!-- Title and Description -->
+    <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Product Classification Tool</h1>
+    <p class="text-gray-500 mb-6 border-b pb-4">Mobile & Laptop shop — select category, search product, edit quantity/price and add.</p>
+
+    <!-- DROPDOWNS -->
+    <div class="flex flex-col sm:flex-row gap-6 mb-6">
+      <div class="flex-1">
+        <label class="block text-base font-bold text-blue-700 mb-2">Category (Macro)</label>
+        <select id="categorySelect" onchange="selectCategory(this.value)" class="w-full p-3 border-2 border-blue-500 rounded-lg bg-white focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition duration-150 cursor-pointer"></select>
+        <div id="categoryQuickButtons" class="mt-2 flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="flex-1">
+        <label class="block text-base font-bold text-green-700 mb-2">Subcategory (Group)</label>
+        <select id="subCategorySelect" onchange="selectSubCategory(this.value)" class="w-full p-3 border-2 border-green-500 rounded-lg bg-white focus:ring-4 focus:ring-green-200 focus:border-green-500 transition duration-150 disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer"></select>
+        <div id="subCategoryQuickButtons" class="mt-2 flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="flex-1">
+        <label class="block text-base font-bold text-purple-700 mb-2">Product Type (Specific)</label>
+        <select id="typeSelect" onchange="selectType(this.value)" class="w-full p-3 border-2 border-purple-500 rounded-lg bg-white focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition duration-150 disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer"></select>
+        <div id="typeQuickButtons" class="mt-2 flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- SEARCH + QTY + PRICE -->
+    <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+      <div class="sm:col-span-2 relative">
+        <label class="block text-base font-bold text-gray-800 mb-2">Product Name Search (Optional)</label>
+        <input id="productNameInput" type="text" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition duration-150" placeholder="Search product name (e.g., 'Samsung Galaxy S23')..." />
+        <div id="searchResults" class="absolute w-full bg-white border border-gray-200 rounded-lg mt-1 hidden shadow-xl z-10 max-h-60 overflow-y-auto"></div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="block text-base font-bold text-gray-800 mb-2">Qty</label>
+        <button id="qtyBtn" class="p-3 border rounded-lg text-left" onclick="editQty()">-</button>
+        <label class="block text-base font-bold text-gray-800 mt-2 mb-2">Price</label>
+        <button id="priceBtn" class="p-3 border rounded-lg text-left" onclick="editPrice()">-</button>
+      </div>
+    </div>
+
+    <div class="mb-6 flex items-center gap-3">
+      <button id="addProductBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" onclick="addProduct()">Add Product</button>
+      <div id="addedCount" class="text-sm text-gray-500">0 products added</div>
+    </div>
+
+    <!-- PRODUCT ADDED OUTPUT -->
+    <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm text-gray-700">
+      <h3 class="text-lg font-bold text-blue-800 mb-1">Product added</h3>
+      <div id="debugArea" class="font-mono whitespace-pre-line"></div>
+    </div>
+
+  </div>
+
+  <!-- MAIN JAVASCRIPT -->
+  <script>
+    // ----------------------
+    // SHOP DATA: Mobile & Laptop store
+    // 6 categories, each with 6 subcategories, each subcategory has 4 product types (brands/models)
+    // ----------------------
+
+    const initialMockData = [
+      {
+        category: 'Smartphones',
+        subCategories: [
+          { name: 'Flagship', types: [ {name:'Galaxy S Series', brands:['Samsung']}, {name:'iPhone Pro', brands:['Apple']}, {name:'Pixel Pro', brands:['Google']}, {name:'OnePlus Ultra', brands:['OnePlus']} ] },
+          { name: 'Midrange', types: [ {name:'Galaxy A Series', brands:['Samsung']}, {name:'iPhone SE', brands:['Apple']}, {name:'Pixel A', brands:['Google']}, {name:'Xiaomi Redmi', brands:['Xiaomi']} ] },
+          { name: 'Budget', types: [ {name:'Basic Android', brands:['Realme']}, {name:'Feature Phone', brands:['Nokia']}, {name:'Entry Xiaomi', brands:['Xiaomi']}, {name:'Moto G', brands:['Motorola']} ] },
+          { name: 'Gaming Phones', types: [ {name:'ROG', brands:['Asus']}, {name:'Black Shark', brands:['Xiaomi']}, {name:'RedMagic', brands:['ZTE']}, {name:'Legion', brands:['Lenovo']} ] },
+          { name: 'Refurbished', types: [ {name:'Refurb iPhone', brands:['Apple']}, {name:'Refurb Samsung', brands:['Samsung']}, {name:'Refurb Pixel', brands:['Google']}, {name:'Refurb OnePlus', brands:['OnePlus']} ] },
+          { name: '5G Devices', types: [ {name:'5G Android', brands:['Samsung']}, {name:'5G iPhone', brands:['Apple']}, {name:'5G Pixel', brands:['Google']}, {name:'5G Xiaomi', brands:['Xiaomi']} ] }
+        ]
+      },
+
+      {
+        category: 'Laptops',
+        subCategories: [
+          { name: 'Ultrabooks', types: [ {name:'XPS', brands:['Dell']}, {name:'MacBook Air', brands:['Apple']}, {name:'ZenBook', brands:['Asus']}, {name:'Spectre', brands:['HP']} ] },
+          { name: 'Gaming', types: [ {name:'ROG Laptop', brands:['Asus']}, {name:'Alienware', brands:['Dell']}, {name:'Legion Laptop', brands:['Lenovo']}, {name:'Omen', brands:['HP']} ] },
+          { name: 'Business', types: [ {name:'ThinkPad', brands:['Lenovo']}, {name:'Latitude', brands:['Dell']}, {name:'EliteBook', brands:['HP']}, {name:'MacBook Pro', brands:['Apple']} ] },
+          { name: '2-in-1', types: [ {name:'Surface Pro', brands:['Microsoft']}, {name:'Yoga', brands:['Lenovo']}, {name:'Envy x360', brands:['HP']}, {name:'Flip', brands:['Asus']} ] },
+          { name: 'Chromebook', types: [ {name:'Chromebook Plus', brands:['Acer']}, {name:'Chromebook Spin', brands:['Asus']}, {name:'Galaxy Chromebook', brands:['Samsung']}, {name:'HP Chromebook', brands:['HP']} ] },
+          { name: 'Refurbished', types: [ {name:'Refurb MacBook', brands:['Apple']}, {name:'Refurb Dell', brands:['Dell']}, {name:'Refurb Lenovo', brands:['Lenovo']}, {name:'Refurb HP', brands:['HP']} ] }
+        ]
+      },
+
+      {
+        category: 'Tablets',
+        subCategories: [
+          { name: 'iPad', types: [ {name:'iPad Pro', brands:['Apple']}, {name:'iPad Air', brands:['Apple']}, {name:'iPad Mini', brands:['Apple']}, {name:'iPad (Standard)', brands:['Apple']} ] },
+          { name: 'Android Tablets', types: [ {name:'Galaxy Tab S', brands:['Samsung']}, {name:'Galaxy Tab A', brands:['Samsung']}, {name:'Lenovo Tab', brands:['Lenovo']}, {name:'Xiaomi Pad', brands:['Xiaomi']} ] },
+          { name: 'Windows Tablets', types: [ {name:'Surface Go', brands:['Microsoft']}, {name:'Surface Pro', brands:['Microsoft']}, {name:'Lenovo Duet', brands:['Lenovo']}, {name:'HP Elite', brands:['HP']} ] },
+          { name: 'Kids Tablets', types: [ {name:'Kids Tablet 7"', brands:['VTech']}, {name:'Kids Fire', brands:['Amazon']}, {name:'LeapPad', brands:['LeapFrog']}, {name:'Kids Tab', brands:['Kurio']} ] },
+          { name: 'Stylus & Pens', types: [ {name:'Apple Pencil', brands:['Apple']}, {name:'S Pen', brands:['Samsung']}, {name:'Surface Pen', brands:['Microsoft']}, {name:'Generic Stylus', brands:['Logitech']} ] },
+          { name: 'Refurbished', types: [ {name:'Refurb iPad', brands:['Apple']}, {name:'Refurb Galaxy Tab', brands:['Samsung']}, {name:'Refurb Surface', brands:['Microsoft']}, {name:'Refurb Lenovo Tab', brands:['Lenovo']} ] }
+        ]
+      },
+
+      {
+        category: 'Accessories',
+        subCategories: [
+          { name: 'Chargers', types: [ {name:'MagSafe Charger', brands:['Apple']}, {name:'USB-C PD', brands:['Anker']}, {name:'Wireless Pad', brands:['Belkin']}, {name:'Car Charger', brands:['Baseus']} ] },
+          { name: 'Cables', types: [ {name:'USB-C Cable', brands:['Anker']}, {name:'Lightning Cable', brands:['Apple']}, {name:'Micro USB', brands:['Samsung']}, {name:'HDMI Cable', brands:['Belkin']} ] },
+          { name: 'Cases & Covers', types: [ {name:'Silicone Case', brands:['Apple']}, {name:'Rugged Case', brands:['OtterBox']}, {name:'Leather Cover', brands:['Apple']}, {name:'Laptop Sleeve', brands:['Tomtoc']} ] },
+          { name: 'Screen Protectors', types: [ {name:'Tempered Glass', brands:['Spigen']}, {name:'Matte Protector', brands:['Zagg']}, {name:'Privacy Film', brands:['3M']}, {name:'Anti-Glare', brands:['Omoton']} ] },
+          { name: 'Audio', types: [ {name:'Earbuds', brands:['Apple']}, {name:'Over-ear Headphones', brands:['Sony']}, {name:'Wireless Earbuds', brands:['Samsung']}, {name:'Gaming Headset', brands:['Razer']} ] },
+          { name: 'Power Banks', types: [ {name:'10k mAh', brands:['Anker']}, {name:'20k mAh', brands:['RAVPower']}, {name:'Wireless Power Bank', brands:['Mophie']}, {name:'Solar Power Bank', brands:['Goal Zero']} ] }
+        ]
+      },
+
+      {
+        category: 'Networking',
+        subCategories: [
+          { name: 'Routers', types: [ {name:'Home Router', brands:['TP-Link']}, {name:'Mesh System', brands:['Google']}, {name:'Gaming Router', brands:['Netgear']}, {name:'Business Router', brands:['Ubiquiti']} ] },
+          { name: 'Modems', types: [ {name:'Cable Modem', brands:['Motorola']}, {name:'DSL Modem', brands:['TP-Link']}, {name:'Combo Modem-Router', brands:['Netgear']}, {name:'Fiber ONT', brands:['Huawei']} ] },
+          { name: 'Range Extenders', types: [ {name:'WiFi Extender', brands:['TP-Link']}, {name:'Powerline Adapter', brands:['Devolo']}, {name:'Mesh Extender', brands:['Netgear']}, {name:'Outdoor Extender', brands:['Ubiquiti']} ] },
+          { name: 'Switches', types: [ {name:'Gigabit Switch', brands:['Netgear']}, {name:'Managed Switch', brands:['Cisco']}, {name:'PoE Switch', brands:['TP-Link']}, {name:'Unmanaged Switch', brands:['D-Link']} ] },
+          { name: 'Access Points', types: [ {name:'Indoor AP', brands:['Ubiquiti']}, {name:'Outdoor AP', brands:['Ubiquiti']}, {name:'Enterprise AP', brands:['Cisco']}, {name:'Guest AP', brands:['Aruba']} ] },
+          { name: 'Cables & Adapters', types: [ {name:'Ethernet Cable', brands:['Belkin']}, {name:'Fiber Cable', brands:['Corning']}, {name:'USB-Ethernet', brands:['Anker']}, {name:'USB-C Adapter', brands:['Belkin']} ] }
+        ]
+      },
+
+      {
+        category: 'Wearables',
+        subCategories: [
+          { name: 'Smartwatches', types: [ {name:'Apple Watch', brands:['Apple']}, {name:'Galaxy Watch', brands:['Samsung']}, {name:'Fitbit Watch', brands:['Fitbit']}, {name:'Garmin', brands:['Garmin']} ] },
+          { name: 'Fitness Bands', types: [ {name:'Fitbit Band', brands:['Fitbit']}, {name:'Mi Band', brands:['Xiaomi']}, {name:'Garmin Band', brands:['Garmin']}, {name:'Huawei Band', brands:['Huawei']} ] },
+          { name: 'Earbuds', types: [ {name:'AirPods', brands:['Apple']}, {name:'Galaxy Buds', brands:['Samsung']}, {name:'Sony WF', brands:['Sony']}, {name:'Jabra Elite', brands:['Jabra']} ] },
+          { name: 'VR Headsets', types: [ {name:'Quest', brands:['Meta']}, {name:'Vive', brands:['HTC']}, {name:'PlayStation VR', brands:['Sony']}, {name:'Valve Index', brands:['Valve']} ] },
+          { name: 'Smart Glasses', types: [ {name:'Ray-Ban Stories', brands:['Meta']}, {name:'Spectacles', brands:['Snap']}, {name:'Smart AR Glasses', brands:['Nreal']}, {name:'Enterprise Glasses', brands:['Vuzix']} ] },
+          { name: 'Wearable Chargers', types: [ {name:'Watch Charger', brands:['Apple']}, {name:'Earbud Case Charger', brands:['Samsung']}, {name:'Wireless Charger Pad', brands:['Anker']}, {name:'Portable Charger', brands:['Anker']} ] }
+        ]
+      }
+
+    ];
+
+    let mockData = null;
+    let productList = [];
+    let ranked = { categories: [], sub: {}, types: {} };
+
+    let selectedCategory = null;
+    let selectedSubCategory = null;
+    let selectedType = null;
+
+    let currentSelectedProduct = null;
+    let addedProducts = [];
+
+    const categorySelect = document.getElementById('categorySelect');
+    const subCategorySelect = document.getElementById('subCategorySelect');
+    const typeSelect = document.getElementById('typeSelect');
+
+    const categoryQuickButtons = document.getElementById('categoryQuickButtons');
+    const subCategoryQuickButtons = document.getElementById('subCategoryQuickButtons');
+    const typeQuickButtons = document.getElementById('typeQuickButtons');
+
+    const productNameInput = document.getElementById('productNameInput');
+    const searchResults = document.getElementById('searchResults');
+    const debugArea = document.getElementById('debugArea');
+    const qtyBtn = document.getElementById('qtyBtn');
+    const priceBtn = document.getElementById('priceBtn');
+    const addedCount = document.getElementById('addedCount');
+
+    function loadData() {
+      mockData = initialMockData;
+      productList = [];
+      flattenProducts();
+      computeRankings();
+
+      renderCategories();
+      renderSubCategories();
+      renderTypes();
+
+      renderCategoryQuickButtons();
+      renderSubCategoryQuickButtons();
+      renderTypeQuickButtons();
+
+      resetSelectionUI();
+    }
+
+    // Flatten into productList with quantity and defaultPrice
+    function flattenProducts() {
+      mockData.forEach(cat => {
+        cat.subCategories.forEach(sub => {
+          sub.types.forEach(t => {
+            t.brands.forEach(b => {
+              productList.push({
+                name: `${b} ${t.name}`,
+                brand: b,
+                type: t.name,
+                category: cat.category,
+                subCategory: sub.name,
+                quantity: Math.floor(Math.random() * 20) + 1,
+                defaultPrice: (Math.floor(Math.random() * 900) + 20) + ".00"
+              });
+            });
+          });
+        });
+      });
+    }
+
+    function computeRankings() {
+      ranked.categories = mockData.map(cat => ({ name: cat.category, sales: 0 })).slice();
+
+      ranked.sub = {};
+      mockData.forEach(cat => {
+        ranked.sub[cat.category] = cat.subCategories.map(sub => ({ name: sub.name, sales: 0 }));
+      });
+
+      ranked.types = {};
+      mockData.forEach(cat => {
+        cat.subCategories.forEach(sub => {
+          ranked.types[sub.name] = sub.types.map(t => ({ name: t.name, sales: 0 }));
+        });
+      });
+    }
+
+    // Renderers
+    function renderCategories() {
+      const options = ranked.categories.map(cat => `<option value="${cat.name}" ${selectedCategory===cat.name? 'selected':''}>${cat.name}</option>`).join('');
+      categorySelect.innerHTML = `<option value="" disabled ${selectedCategory===null? 'selected':''}>--- Select a Category ---</option>` + options;
+    }
+
+    function renderSubCategories() {
+      let options = `<option value="" disabled ${selectedSubCategory===null? 'selected':''}>--- Select a Subcategory ---</option>`;
+      if (selectedCategory && ranked.sub[selectedCategory]) {
+        options += ranked.sub[selectedCategory].map(s => `<option value="${s.name}" ${selectedSubCategory===s.name? 'selected':''}>${s.name}</option>`).join('');
+      }
+      subCategorySelect.innerHTML = options;
+      subCategorySelect.disabled = !selectedCategory;
+    }
+
+    function renderTypes() {
+      let options = `<option value="" disabled ${selectedType===null? 'selected':''}>--- Select a Product Type ---</option>`;
+      if (selectedSubCategory && ranked.types[selectedSubCategory]) {
+        options += ranked.types[selectedSubCategory].map(t => `<option value="${t.name}" ${selectedType===t.name? 'selected':''}>${t.name}</option>`).join('');
+      }
+      typeSelect.innerHTML = options;
+      typeSelect.disabled = !selectedSubCategory;
+    }
+
+    function renderCategoryQuickButtons() {
+      categoryQuickButtons.innerHTML = '';
+      ranked.categories.slice(0,4).forEach(cat => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-2 py-1 text-xs rounded-full border border-blue-500 text-blue-700 hover:bg-blue-50 active:bg-blue-100 transition';
+        btn.textContent = cat.name;
+        btn.onclick = () => selectCategory(cat.name);
+        categoryQuickButtons.appendChild(btn);
+      });
+    }
+
+    function renderSubCategoryQuickButtons() {
+      subCategoryQuickButtons.innerHTML = '';
+      if (!selectedCategory) return;
+      ranked.sub[selectedCategory].slice(0,4).forEach(sub => {
+        const btn = document.createElement('button');
+        btn.type='button';
+        btn.className='px-2 py-1 text-xs rounded-full border border-green-500 text-green-700 hover:bg-green-50 active:bg-green-100 transition';
+        btn.textContent = sub.name;
+        btn.onclick = () => selectSubCategory(sub.name);
+        subCategoryQuickButtons.appendChild(btn);
+      });
+    }
+
+    function renderTypeQuickButtons() {
+      typeQuickButtons.innerHTML = '';
+      if (!selectedSubCategory) return;
+      ranked.types[selectedSubCategory].slice(0,4).forEach(t => {
+        const btn = document.createElement('button');
+        btn.type='button';
+        btn.className='px-2 py-1 text-xs rounded-full border border-purple-500 text-purple-700 hover:bg-purple-50 active:bg-purple-100 transition';
+        btn.textContent = t.name;
+        btn.onclick = () => selectType(t.name);
+        typeQuickButtons.appendChild(btn);
+      });
+    }
+
+    // Selection handlers
+    window.selectCategory = function(cat) {
+      selectedCategory = cat;
+      selectedSubCategory = null;
+      selectedType = null;
+      renderCategories(); renderSubCategories(); renderTypes();
+      renderSubCategoryQuickButtons(); renderTypeQuickButtons(); resetSelectionUI();
+    }
+
+    window.selectSubCategory = function(sub) {
+      selectedSubCategory = sub; selectedType = null;
+      renderSubCategories(); renderTypes(); renderTypeQuickButtons(); resetSelectionUI();
+    }
+
+    window.selectType = function(t) {
+      selectedType = t; renderTypes(); resetSelectionUI();
+    }
+
+    // Search
+    productNameInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) { searchResults.classList.add('hidden'); return; }
+      const results = productList.filter(p => p.name.toLowerCase().includes(q));
+      searchResults.innerHTML = results.slice(0,20).map(p => `
+        <div class="p-3 hover:bg-blue-50 cursor-pointer text-gray-700 transition duration-100" onclick="selectProduct('${p.name.replace(/'/g, "\'")}')">
+          <span class=\"font-semibold\">${p.name}</span> <span class=\"text-xs text-gray-400 ml-2\">(${p.category} > ${p.subCategory})</span>
+        </div>`).join('');
+      searchResults.classList.remove('hidden');
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!productNameInput.contains(event.target) && !searchResults.contains(event.target)) searchResults.classList.add('hidden');
+    });
+
+    window.selectProduct = function(name) {
+      const p = productList.find(pp => pp.name === name);
+      if (!p) return;
+      productNameInput.value = p.name; searchResults.classList.add('hidden');
+
+      selectedCategory = p.category; selectedSubCategory = p.subCategory; selectedType = p.type; currentSelectedProduct = Object.assign({}, p);
+
+      renderCategories(); renderSubCategories(); renderTypes(); renderCategoryQuickButtons(); renderSubCategoryQuickButtons(); renderTypeQuickButtons();
+      updateSelectionUI();
+    }
+
+    // UI for qty/price
+    function resetSelectionUI() {
+      currentSelectedProduct = null;
+      productNameInput.value = '';
+      qtyBtn.textContent = '-';
+      priceBtn.textContent = '-';
+      debugArea.textContent = '';
+    }
+
+    function updateSelectionUI() {
+      if (!currentSelectedProduct) {
+        qtyBtn.textContent = '-'; priceBtn.textContent = '-'; return;
+      }
+      qtyBtn.textContent = 'Qty: ' + currentSelectedProduct.quantity;
+      priceBtn.textContent = 'Price: $' + currentSelectedProduct.defaultPrice;
+    }
+
+    function editQty() {
+      if (!currentSelectedProduct) { alert('Select a product first (search or dropdown).'); return; }
+      const val = prompt('Enter quantity', currentSelectedProduct.quantity);
+      if (val === null) return;
+      const n = parseInt(val);
+      if (isNaN(n) || n < 0) { alert('Invalid quantity'); return; }
+      currentSelectedProduct.quantity = n; updateSelectionUI();
+    }
+
+    function editPrice() {
+      if (!currentSelectedProduct) { alert('Select a product first (search or dropdown).'); return; }
+      const val = prompt('Enter price (number only)', currentSelectedProduct.defaultPrice);
+      if (val === null) return;
+      const num = parseFloat(val);
+      if (isNaN(num) || num < 0) { alert('Invalid price'); return; }
+      currentSelectedProduct.defaultPrice = Number(num).toFixed(2);
+      updateSelectionUI();
+    }
+
+    function addProduct() {
+      if (!currentSelectedProduct) { alert('Select a product to add first.'); return; }
+      // Push a shallow copy
+      addedProducts.push(Object.assign({}, currentSelectedProduct));
+      addedCount.textContent = `${addedProducts.length} product(s) added`;
+      // Show single-line output replacing previous
+      debugArea.textContent = `Product added: ${currentSelectedProduct.name} | ${currentSelectedProduct.category} > ${currentSelectedProduct.subCategory} > ${currentSelectedProduct.type} | Qty: ${currentSelectedProduct.quantity} | Price: $${currentSelectedProduct.defaultPrice}`;
+    }
+
+    // When user selects dropdown values (not search), pick a default product to edit
+    subCategorySelect.addEventListener('change', () => {
+      // pick first product matching category/sub/type if possible
+      pickFirstMatch();
+    });
+    typeSelect.addEventListener('change', () => { pickFirstMatch(); });
+    categorySelect.addEventListener('change', () => { pickFirstMatch(); });
+
+    function pickFirstMatch() {
+      // find a product matching current selections
+      const p = productList.find(pp => pp.category === selectedCategory && pp.subCategory === selectedSubCategory && pp.type === selectedType);
+      if (p) {
+        currentSelectedProduct = Object.assign({}, p);
+        productNameInput.value = currentSelectedProduct.name;
+        updateSelectionUI();
+      } else {
+        currentSelectedProduct = null; updateSelectionUI();
+      }
+    }
+
+    // initial load
+    loadData();
+  </script>
+
+</body>
+</html>
