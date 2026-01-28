@@ -19,11 +19,14 @@
             padding: 20px;
             margin: 0;
             color: var(--primary);
+            overflow-x: hidden; /* Prevent horizontal body scroll */
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .header {
@@ -37,23 +40,44 @@
             color: var(--primary);
         }
 
-        /* Unified Filter Bar - No separate boxes */
+        /* Unified Filter Bar: Grid layout for top 3 filters */
         .filter-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
             background: var(--white);
-            padding: 15px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .filter-section {
             display: flex;
             flex-direction: column;
             gap: 10px;
+            min-width: 0; /* Prevents flex items from breaking grid container */
         }
 
+        /* Wide 4th section: Spans full width of the grid */
+        .filter-section.wide-section {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .section-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        /* Style for traditional select dropdowns */
         select {
             width: 100%;
             padding: 12px;
@@ -71,6 +95,7 @@
             background-size: 16px;
         }
 
+        /* Wrapper for horizontal scrollable button groups */
         .scroll-wrapper {
             display: flex;
             align-items: center;
@@ -78,6 +103,9 @@
             background: #fafafa;
             border-radius: 8px;
             padding: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .arrow {
@@ -94,6 +122,7 @@
             align-items: center;
             justify-content: center;
             opacity: 0.6;
+            flex-shrink: 0;
         }
 
         .arrow:hover {
@@ -104,31 +133,33 @@
 
         .scroll-area {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             overflow-x: auto;
             padding: 4px 0;
             scroll-behavior: smooth;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            width: 100%;
+            -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+            flex-grow: 1;
         }
 
         .scroll-area::-webkit-scrollbar {
-            display: none;
+            display: none; /* Hide scrollbar for Chrome/Safari */
         }
 
+        /* Filter buttons */
         .btn {
             min-width: fit-content;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 6px;
             border: 1px solid transparent;
             background: transparent;
             font-weight: 500;
-            font-size: 13px;
+            font-size: 14px;
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.2s ease;
             color: #666;
+            flex-shrink: 0;
         }
 
         .btn:hover {
@@ -141,9 +172,15 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            .filter-bar { grid-template-columns: 1fr; }
+        /* Responsive Breakpoints */
+        @media (max-width: 900px) {
+            .filter-bar { 
+                grid-template-columns: 1fr; 
+                gap: 15px;
+            }
+            .filter-section.wide-section { 
+                grid-column: auto; 
+            }
         }
     </style>
 </head>
@@ -154,8 +191,10 @@
         <h1>Inventory Filter</h1>
     </div>
 
+    <!-- Filter Bar Main Container -->
     <div class="filter-bar">
-        <!-- CATEGORY -->
+        
+        <!-- SECTION 1: CATEGORY -->
         <div class="filter-section">
             <select id="categorySelect"></select>
             <div class="scroll-wrapper">
@@ -165,7 +204,7 @@
             </div>
         </div>
 
-        <!-- SUB CATEGORY -->
+        <!-- SECTION 2: SUB CATEGORY -->
         <div class="filter-section">
             <select id="subSelect"></select>
             <div class="scroll-wrapper">
@@ -175,7 +214,7 @@
             </div>
         </div>
 
-        <!-- TYPE -->
+        <!-- SECTION 3: TYPE -->
         <div class="filter-section">
             <select id="typeSelect"></select>
             <div class="scroll-wrapper">
@@ -184,83 +223,178 @@
                 <button class="arrow" onclick="scrollBox('typeBtns', 250)">&#10095;</button>
             </div>
         </div>
+
+        <!-- SECTION 4: MOST SELLING ITEMS (Full width button row) -->
+        <div class="filter-section wide-section">
+            <div class="section-label">Most Selling Items</div>
+            <div class="scroll-wrapper">
+                <button class="arrow" onclick="scrollBox('sellingBtns', -400)">&#10094;</button>
+                <div class="scroll-area" id="sellingBtns"></div>
+                <button class="arrow" onclick="scrollBox('sellingBtns', 400)">&#10095;</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+/**
+ * DATA STRUCTURE INSTRUCTIONS:
+ * 1. The data is a nested object: Category > Sub-Category > Type > Items[].
+ * 2. When a selection is made at one level, the levels below it are cleared and re-populated.
+ * 3. Each level must contain at least 5 keys/items to satisfy the "Minimum 5" requirement.
+ */
 const data = {
     "Smartphones": {
-        "Apple iPhone": ["iPhone 15 Pro Max", "iPhone 15 Plus", "iPhone 14 Pro", "iPhone 13 Mini", "iPhone SE 2022", "iPhone 12", "iPhone 11", "iPhone XR"],
-        "Samsung Galaxy": ["S24 Ultra", "S23 Plus", "Z Fold 5", "Z Flip 5", "A54 5G", "A34", "M54", "S21 FE"],
-        "Google Pixel": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a", "Pixel 7 Pro", "Pixel 6", "Pixel Fold", "Pixel 5", "Pixel 4a"],
-        "Xiaomi / Redmi": ["Xiaomi 14 Pro", "Redmi Note 13 Pro", "Poco F5", "Redmi 12C", "Xiaomi 13T", "Black Shark 5", "Mi 11 Ultra", "Redmi A2"],
-        "OnePlus": ["OnePlus 12", "OnePlus 11R", "Nord CE 3", "Nord N30", "OnePlus 10 Pro", "OnePlus Open", "Nord 2T", "OnePlus 9"]
+        "Apple iPhone": {
+            "iPhone 15 Pro": ["15 Pro 128GB Blue", "15 Pro 256GB Black", "15 Pro Max 256GB Natural", "15 Pro 512GB White", "15 Pro Max 1TB Titan"],
+            "iPhone 14 Pro": ["14 Pro 128GB Gold", "14 Pro Max 1TB Purple", "14 Pro 256GB Space Black", "14 Pro 512GB Silver", "14 Pro Max 128GB Blue"],
+            "iPhone SE 2022": ["SE 64GB Red", "SE 128GB Midnight", "SE 256GB Starlight", "SE 64GB Black", "SE 128GB Red"],
+            "iPhone 13 Mini": ["13 Mini 128GB Blue", "13 Mini 256GB Starlight", "13 Mini 512GB Pink", "13 Mini 128GB Green", "13 Mini 256GB Red"],
+            "iPhone 12": ["iPhone 12 64GB Black", "iPhone 12 128GB White", "iPhone 12 256GB Green", "iPhone 12 64GB Blue", "iPhone 12 128GB Purple"]
+        },
+        "Samsung Galaxy": {
+            "S24 Ultra": ["Titanium Black", "Titanium Gray", "Titanium Violet", "Titanium Yellow", "Titanium Blue"],
+            "S23 Plus": ["S23+ Lavender", "S23+ Cream", "S23+ Phantom Black", "S23+ Green", "S23+ Lime"],
+            "Z Fold 5": ["Phantom Black", "Icy Blue", "Cream", "Gray", "Blue"],
+            "A54 5G": ["Awesome Lime", "Awesome Graphite", "Awesome Violet", "Awesome White", "Awesome Black"],
+            "M54": ["Silver", "Dark Blue", "Emerald", "Gold", "Stardust"]
+        },
+        "Google Pixel": {
+            "Pixel 8": ["Obsidian", "Hazel", "Rose", "Mint", "Bay"],
+            "Pixel 7": ["Lemongrass", "Snow", "Obsidian", "Coral", "Sea"],
+            "Pixel 6": ["Stormy Black", "Sorta Seafoam", "Kinda Coral", "Cloudy White", "Sunny"],
+            "Pixel Fold": ["Obsidian", "Porcelain", "Carbon", "Gold", "Slate"],
+            "Pixel 7a": ["Charcoal", "Sea", "Snow", "Coral", "Blue"]
+        },
+        "Xiaomi": {
+            "Xiaomi 14": ["Black", "White", "Jade Green", "Pink", "Silver"],
+            "Redmi Note 13": ["Midnight Black", "Ocean Teal", "Arctic White", "Mint Green", "Sunset Red"],
+            "Poco F5": ["Black", "White", "Blue", "Yellow", "Carbon"],
+            "Xiaomi 13T": ["Alpine Blue", "Meadow Green", "Black", "Silver", "Red"],
+            "Redmi 12": ["Sky Blue", "Midnight Black", "Polar Silver", "Purple", "Gold"]
+        },
+        "OnePlus": {
+            "OnePlus 12": ["Flowy Emerald", "Silky Black", "White", "Cyan", "Red"],
+            "Nord CE 3": ["Aqua Surge", "Gray Shimmer", "Blue", "Black", "Silver"],
+            "OnePlus 11": ["Eternal Green", "Titan Black", "Jupiter Rock", "White", "Red"],
+            "Nord 3": ["Tempest Gray", "Misty Green", "Black", "Blue", "Silver"],
+            "OnePlus Open": ["Emerald Dusk", "Voyager Black", "Green", "Titan", "Gold"]
+        }
     },
     "Laptops": {
-        "Apple MacBook": ["MacBook Pro 16 M3", "MacBook Pro 14 M3", "MacBook Air 15 M2", "MacBook Air 13 M2", "MacBook Pro 13 M2", "MacBook Air M1", "MacBook Pro 16 M1", "MacBook Pro 14 M2"],
-        "Gaming Laptops": ["ASUS ROG Strix", "MSI Raider GE78", "Razer Blade 16", "Alienware m18", "HP Victus 16", "Lenovo Legion Slim", "Acer Nitro 5", "Gigabyte Aorus"],
-        "Business Laptops": ["ThinkPad X1 Carbon", "Dell XPS 13", "HP EliteBook", "Surface Laptop 5", "ASUS Zenbook S13", "LG Gram 17", "Latitude 7440", "Dynabook Portégé"],
-        "Chromebooks": ["HP Chromebook x360", "Acer Spin 714", "ASUS Flip CX5", "Lenovo IdeaPad 3i", "Samsung Galaxy 2", "Pixelbook Go", "Dell 3110", "Acer C734"],
-        "Budget Laptops": ["Acer Aspire 5", "HP Laptop 15", "Dell Inspiron 15", "Lenovo IdeaPad 1", "ASUS Vivobook", "Samsung Galaxy Book", "Gateway 14.1", "Chuwi HeroBook"]
+        "Apple MacBook": {
+            "MacBook Pro 14 M3": ["M3 512GB Space Grey", "M3 Pro 512GB Silver", "M3 Max 1TB Black", "M3 Pro 1TB Space Grey", "M3 Max 2TB Black"],
+            "MacBook Air 15 M2": ["M2 256GB Midnight", "M2 512GB Starlight", "M2 1TB Space Grey", "M2 256GB Silver", "M2 512GB Midnight"],
+            "MacBook Air M1": ["M1 256GB Space Grey", "M1 256GB Gold", "M1 512GB Silver", "M1 16GB 256GB Grey", "M1 16GB 512GB Gold"],
+            "MacBook Pro 16 M2": ["M2 Pro 512GB", "M2 Max 1TB", "M2 Pro 1TB", "M2 Max 2TB", "M2 Pro 2TB"],
+            "MacBook Pro 13": ["M2 256GB Grey", "M2 512GB Silver", "M2 1TB Grey", "M1 256GB Silver", "M1 512GB Grey"]
+        },
+        "Gaming": {
+            "ASUS ROG": ["Strix G16", "Zephyrus G14", "Scar 18", "Flow X16", "Strix Scar 16"],
+            "MSI": ["Raider GE78", "Stealth 16", "Titan GT77", "Katana 15", "Cyborg 15"],
+            "Razer Blade": ["Blade 14", "Blade 15", "Blade 16", "Blade 17", "Blade 18"],
+            "HP Victus": ["Victus 15", "Victus 16", "Victus 17", "Victus Gaming Desktop", "Victus White Edition"],
+            "Alienware": ["m16 R2", "x14 R2", "m18", "x16", "Aurora R16"]
+        },
+        "Business": {
+            "ThinkPad": ["X1 Carbon", "X1 Yoga", "T14s", "P16", "E14"],
+            "Dell Latitude": ["7440", "5440", "9440 2-in-1", "3440", "7340"],
+            "HP EliteBook": ["840 G10", "1040 G10", "640 G10", "845 G10", " Dragonfly G4"],
+            "Surface Laptop": ["Laptop 5 13.5\"", "Laptop 5 15\"", "Laptop Go 3", "Laptop Studio 2", "Pro 9 Business"],
+            "ASUS ExpertBook": ["B9 OLED", "B5", "B7 Flip", "B3", "B1"]
+        },
+        "Chromebooks": {
+            "Acer": ["Spin 714", "516 GE", "Plus 515", "Spin 513", "314"],
+            "ASUS": ["Vibe CX34", "Flip CX5", "Detachable CM3", "C424", "C223"],
+            "HP": ["Dragonfly Pro", "x360 14c", "14a", "11a", "x2"],
+            "Lenovo": ["IdeaPad Slim 3", "Flex 5i", "Duet 5", "ThinkPad C14", "14e"],
+            "Samsung": ["Galaxy Chromebook 2", "Go", "Plus V2", "Chromebook 4", "Pro"]
+        },
+        "Student Laptops": {
+            "Vivobook": ["S 15", "Go 15", "Flip 14", "Pro 16", "15 OLED"],
+            "Inspiron": ["14 5000", "15 3000", "16 Plus", "14 2-in-1", "15 Laptop"],
+            "Pavilion": ["Aero 13", "Plus 14", "x360 14", "15 Laptop", "Gaming 15"],
+            "Swift": ["Swift Go 14", "Swift X", "Swift Edge", "Swift 3", "Swift 1"],
+            "Surface": ["Laptop Go 2", "Go 3 Tablet", "Laptop 4", "Pro 7+", "Pro 8"]
+        }
     },
     "Tablets": {
-        "iPad": ["iPad Pro 12.9", "iPad Air 5", "iPad Mini 6", "iPad 10.9 (10th)", "iPad 10.2 (9th)", "iPad Pro 11", "iPad Air 4", "iPad Pro (M2)"],
-        "Samsung Tab": ["Galaxy Tab S9 Ultra", "Tab S9 FE", "Tab A8", "Tab S8 Plus", "Tab S7 FE", "Tab A7 Lite", "Tab Active 4", "Tab S6 Lite"],
-        "Microsoft Surface": ["Surface Pro 9", "Surface Go 3", "Surface Pro 8", "Surface Pro X", "Surface Laptop Studio", "Surface Duo 2", "Surface Book 3", "Surface Go 2"],
-        "Android Tablets": ["Xiaomi Pad 6", "Lenovo P12 Pro", "OnePlus Pad", "Realme Pad", "Huawei MatePad", "Honor Pad 8", "Nokia T20", "Pixel Tablet"],
-        "Graphics Tablets": ["Wacom Intuos", "Huion Kamvas 13", "XP-Pen Artist", "Wacom Cintiq", "Gaomon PD1161", "UGEE M708", "Huion Inspiroy", "Wacom One"]
-    },
-    "Audio & Sound": {
-        "Earbuds": ["AirPods Pro 2", "Sony WF-1000XM5", "Galaxy Buds 2 Pro", "Pixel Buds Pro", "Bose QC II", "Sennheiser MTW 3", "Jabra Elite 8", "Beats Studio Buds"],
-        "Over-Ear": ["Sony WH-1000XM5", "Bose QC45", "AirPods Max", "Sennheiser Momentum 4", "Beats Studio Pro", "Audio-Technica M50x", "JBL Live 660", "Bowers PX7"],
-        "Gaming Headsets": ["SteelSeries Arctis Nova", "HyperX Cloud III", "Logitech G Pro X", "Razer BlackShark V2", "Corsair HS80", "Turtle Beach Stealth", "Astro A50", "EPOS GSP 600"],
-        "Bluetooth Speakers": ["JBL Flip 6", "Marshall Emberton", "UE Boom 3", "Sonos Roam", "Bose SoundLink", "Sony XB13", "Anker Soundcore 2", "Harman Kardon Onyx"],
-        "Home Audio": ["Sonos Arc", "Samsung HW-Q990C", "Sony HT-A7000", "Yamaha SR-B20A", "Bose Smart Soundbar", "LG S95QR", "Denon DHT-S216", "Klipsch Cinema"]
-    },
-    "Wearables": {
-        "Smartwatches": ["Apple Watch Ultra 2", "Apple Watch S9", "Galaxy Watch 6", "Pixel Watch 2", "Garmin Venu 3", "TicWatch Pro 5", "Huawei Watch GT4", "Fossil Gen 6"],
-        "Fitness Bands": ["Fitbit Charge 6", "Xiaomi Mi Band 8", "Garmin vivosmart 5", "Huawei Band 8", "Fitbit Luxe", "Samsung Galaxy Fit 3", "Amazfit Band 7", "Whoop 4.0"],
-        "Luxury Watches": ["Tag Heuer Connected", "Montblanc Summit", "Garmin Marq", "Withings ScanWatch", "Apple Watch Hermes", "Tissot T-Touch", "Hublot Big Bang e", "Louis Vuitton Tambour"],
-        "Kids Trackers": ["Garmin vivofit jr 3", "Fitbit Ace 3", "Apple Watch SE", "Verizon Gizmo", "TickTalk 4", "Xplora X5", "Cosmo JrTrack", "Gabb Watch"],
-        "Smart Rings": ["Oura Ring Gen3", "Ultrahuman Ring", "RingConn", "Circular Ring", "Evie Ring", "Samsung Galaxy Ring", "Fitbit Ring concept", "Movano Evie"]
-    },
-    "Storage": {
-        "External SSD": ["Samsung T7 Shield", "SanDisk Extreme", "Crucial X8", "WD My Passport", "Seagate Fast SSD", "Kingston XS2000", "Lacie Mobile Drive", "Sabrent Rocket"],
-        "Internal SSD": ["Samsung 990 Pro", "WD Black SN850X", "Crucial T700", "Seagate FireCuda", "SK Hynix P41", "Kingston KC3000", "Sabrent Rocket 4 Plus", "Lexar NM790"],
-        "Hard Drives": ["WD Elements 4TB", "Seagate Expansion", "Toshiba Canvio", "Lacie Rugged", "WD My Book", "Seagate Backup Plus", "G-Technology Armor", "ADATA HD710"],
-        "Flash Drives": ["SanDisk Ultra Luxe", "Samsung Bar Plus", "Kingston DataTraveler", "PNY Turbo", "Corsair Flash Voyager", "Lexar JumpDrive", "SanDisk iXpand", "Sony USM-BA2"],
-        "Memory Cards": ["SanDisk Extreme Pro", "Samsung EVO Select", "Lexar Professional", "Sony Tough G", "Kingston Canvas", "ProGrade Digital", "SanDisk Nintendo", "PNY Elite-X"]
-    },
-    "Gaming": {
-        "Consoles": ["PlayStation 5", "Xbox Series X", "Nintendo Switch OLED", "Steam Deck", "ROG Ally", "PS5 Digital", "Xbox Series S", "Switch Lite"],
-        "Controllers": ["DualSense Edge", "Xbox Elite Series 2", "Nintendo Pro Controller", "Scuf Instinct", "Razer Wolverine", "8BitDo Pro 2", "Turtle Beach Recon", "Gulikit KingKong 2"],
-        "PC Gear": ["Logitech G502X", "Razer DeathAdder V3", "SteelSeries Apex Pro", "Corsair K70", "HyperX Pulsefire", "Finalmouse Starlight", "Keychron Q1", "Glorious Model O"],
-        "VR / AR": ["Meta Quest 3", "PSVR 2", "Valve Index", "HP Reverb G2", "Pico 4", "HTC Vive XR", "Apple Vision Pro", "Meta Quest Pro"],
-        "Streaming": ["Elgato Stream Deck", "Razer Seiren V3", "Logitech Brio", "Blue Yeti", "Elgato Facecam", "Shure MV7", "Rode NT-USB", "AverMedia Live"]
-    },
-    "Network & Smart Home": {
-        "Routers": ["TP-Link Archer AXE75", "ASUS RT-AX88U", "Netgear Nighthawk", "Linksys Hydra", "Google Nest WiFi Pro", "Eero 6 Plus", "Ubiquiti UniFi", "Synology RT6600"],
-        "Smart Security": ["Ring Video Doorbell", "Arlo Pro 5", "Nest Cam", "Eufy Cam 3", "Wyze Cam v3", "Blink Outdoor", "TP-Link Tapo", "Reolink Argus"],
-        "Smart Lighting": ["Philips Hue Kit", "Nanoleaf Shapes", "Govee Glide", "LIFX Beam", "TP-Link Kasa", "Wiz Smart Bulb", "Sengled Color", "Yeelight Strip"],
-        "Hubs & Speakers": ["Echo Show 10", "Google Nest Hub", "HomePod Second Gen", "Apple TV 4K", "Fire TV Cube", "Nvidia Shield TV", "Roku Ultra", "Samsung SmartThings"],
-        "Smart Plugs": ["TP-Link Kasa Mini", "Wemo Smart Plug", "Shelly Plug", "Meross Outdoor", "Eve Energy", "Philips Hue Plug", "D-Link DSP", "Gosund Mini"]
-    },
-    "Photography": {
-        "Cameras": ["Sony A7 IV", "Canon EOS R6", "Nikon Z6 II", "Fujifilm X-T5", "Panasonic GH6", "Sony ZV-E10", "GoPro Hero 12", "DJI Osmo Pocket 3"],
-        "Lenses": ["Sony 24-70mm GM", "Canon RF 50mm", "Nikon Z 85mm", "Sigma 18-50mm", "Tamron 28-75mm", "Sony 70-200mm", "Fujinon 35mm", "Canon 35mm RF"],
-        "Gimbals": ["DJI RS 3 Pro", "Zhiyun Crane 4", "Insta360 Flow", "DJI Osmo Mobile 6", "Feiyu Scorp", "Moza Air 2", "Zhiyun Smooth 5", "DJI RS 3 Mini"],
-        "Drones": ["DJI Mavic 3 Pro", "DJI Mini 4 Pro", "Autel EVO Lite", "DJI Air 3", "Potensic Atom", "Holy Stone HS720", "DJI Avata", "Ryze Tello"],
-        "Accessories": ["Peak Design Strap", "Rode VideoMic", "Manfrotto Tripod", "Joby GorillaPod", "SanDisk V90 Card", "Godox V1 Flash", "Lowepro Bag", "SmallRig Cage"]
+        "iPad": {
+            "iPad Pro 12.9": ["M2 256GB WiFi", "M2 512GB Cellular", "M2 1TB Space Grey", "M2 2TB WiFi", "M1 128GB Silver"],
+            "iPad Air 5": ["Air 5 64GB Blue", "Air 5 256GB Space Grey", "Air 5 64GB Pink", "Air 5 256GB Purple", "Air 5 64GB Starlight"],
+            "iPad Mini 6": ["Mini 6 64GB Purple", "Mini 6 256GB Pink", "Mini 6 64GB Starlight", "Mini 6 256GB Grey", "Mini 6 64GB Blue"],
+            "iPad 10th Gen": ["Blue", "Pink", "Yellow", "Silver", "64GB WiFi"],
+            "iPad 9th Gen": ["Space Grey 64GB", "Silver 64GB", "Space Grey 256GB", "Silver 256GB", "Refurbished Unit"]
+        },
+        "Samsung Tab": {
+            "Galaxy Tab S9 Ultra": ["256GB Grey", "512GB Beige", "1TB 5G", "128GB WiFi", "512GB Grey"],
+            "Tab A9": ["64GB Graphite", "128GB Silver", "Kids Edition", "WiFi Only", "LTE Edition"],
+            "Tab S6 Lite": ["64GB Blue", "128GB Rose", "2024 Edition", "LTE Oxford Grey", "64GB Chiffon Pink"],
+            "Tab S9 FE": ["Mint", "Lavender", "Gray", "Silver", "256GB WiFi"],
+            "Tab Active 4": ["Pro Black", "Rugged Edition", "64GB LTE", "Enterprise Edition", "Refurbished"]
+        },
+        "Lenovo Tab": {
+            "Tab P12": ["Storm Grey", "Oat", "8GB RAM", "128GB", "Pro Version"],
+            "Tab M10": ["Gen 3 Grey", "Gen 3 Blue", "Plus 128GB", "HD 2nd Gen", "5G Edition"],
+            "Yoga Tab 13": ["Shadow Black", "8GB RAM", "Steel Grey", "Refurbished", "Business Pack"],
+            "Tab P11 Pro": ["Gen 2 OLED", "Slate Grey", "Pen Bundle", "256GB", "WiFi 6"],
+            "Tab M8": ["Gen 4 Blue", "Arctic Grey", "Refurbished", "LTE", "Kids Pack"]
+        },
+        "Microsoft": {
+            "Surface Pro 9": ["Sapphire", "Forest", "Platinum", "Graphite", "i7 16GB"],
+            "Surface Go 3": ["Platinum 64GB", "Graphite 128GB", "LTE Platinum", "Kids Bundle", "Refurbished"],
+            "Surface Pro 8": ["Platinum", "Graphite", "i5 8GB", "i7 16GB", "Signature Keyboard"],
+            "Surface Pro 7+": ["Platinum", "128GB WiFi", "256GB LTE", "Business Edition", "Silver"],
+            "Surface Laptop Studio": ["i7 32GB", "RTX 4050", "1TB SSD", "i5 16GB", "Refurbished"]
+        },
+        "Graphics": {
+            "Wacom Cintiq": ["16 Pro", "22 Creative", "27 Pro", "13 HD", "Refurbished"],
+            "Huion Kamvas": ["Pro 13", "Pro 16", "22 Plus", "Pro 24", "13 Gen 2"],
+            "XP-Pen": ["Artist 12", "Artist 16 Pro", "Artist 22", "Deco Pro", "Innovator 16"],
+            "iPad Drawing": ["iPad Pro Pen Bundle", "iPad Air Art Pack", "Mini Sketch Pad", "Pro Max Display", "Pencil Included"],
+            "Surface Art": ["Surface Pro Art Pen", "Slim Pen 2 Duo", "Creative Pack", "Designer Bundle", "Studio Art"]
+        }
     },
     "Chargers & Power": {
-        "Wall Chargers": ["Anker 735 GaN", "Apple 20W USB-C", "Samsung 45W Travel", "Satechi 108W", "UGREEN 65W Nexode", "Belkin 30W", "Baseus 100W", "Google 30W"],
-        "Power Banks": ["Anker 737 PowerCore", "Baseus 20000mAh", "Samsung 25W Pack", "Mophie Powerstation", "Xiaomi Mi Bank", "Belkin BoostCharge", "Goal Zero Sherpa", "Nimble Champ"],
-        "Wireless": ["Apple MagSafe", "Samsung Duo Pad", "Belkin 3-in-1", "Anker Magnetic", "Satechi Trio", "Logitech Powered", "Nomad Base Station", "Spigen ArcField"],
-        "Cables": ["Apple USB-C 2m", "Anker PowerLine III", "Belkin Braided", "Native Union Belt", "Nomad Kevlar", "Satechi USB-4", "UGREEN Thunderbolt", "CableMatters Pro"],
-        "Car Power": ["Scosche PowerVolt", "Anker Roav", "Nitecore VCL10", "Belkin Car Charger", "Baseus 65W Car", "Spigen SteadiBoost", "Aukey Flush", "iOttie Wireless"]
+        "Wall Chargers": {
+            "C-plug": ["C 18W Wall Plug", "C 20W Fast Charger", "C 30W Compact Plug", "C 45W Samsung Style", "C 65W Laptop Plug"],
+            "USB plug": ["Standard 12W USB", "USB 10W White Plug", "USB 5W Original", "USB 18W QC 3.0", "USB 24W Dual"],
+            "Dual Port": ["Dual Port 35W Fast Plug", "Dual 65W GaN Charger", "Dual C+A 40W", "Dual 100W Desktop", "Dual 20W Compact"],
+            "GaN Tech": ["GaN 65W Slim", "GaN 100W 3-port", "GaN 30W Mini", "GaN 140W MacBook", "GaN 45W Samsung"],
+            "International": ["UK 3-pin 20W", "EU 2-pin 20W", "US 2-pin 20W", "Universal Travel Kit", "AU Adapter"]
+        },
+        "Cables": {
+            "Lightning": ["1m Original", "2m Braided", "0.5m Short", "3m Long", "90 Degree Game Cable"],
+            "USB-C to C": ["60W Power Delivery", "100W 5A Cable", "Thunderbolt 4", "Braided 2m", "Short 0.3m"],
+            "Micro USB": ["1m Standard", "2m Heavy Duty", "Short OTG", "Magnetic Tip", "Flat Tangle Free"],
+            "Multi-Cable": ["3-in-1 Universal", "4-in-1 PD", "Retractable Multi", "Keychain Mini", "Heavy Duty Braided"],
+            "Display Cables": ["C to HDMI 4K", "C to DisplayPort", "HDMI 2.1", "VGA Adapter", "Mini DP to HDMI"]
+        },
+        "Power Banks": {
+            "Compact": ["5000mAh Slim", "10000mAh Mini", "Pocket Size", "Card Power", "5k MagSafe"],
+            "High Capacity": ["20000mAh PD", "30000mAh Monster", "25600mAh Laptop", "40k Portable Station", "20k Wireless"],
+            "MagSafe": ["Apple Battery Pack", "Anker 622", "Belkin 5k", "ESR HaloLock", "10k Magnetic"],
+            "Solar": ["Solar 10k", "Solar 20k Rugged", "Foldable Panel", "Camping Bank", "Emergency Crank"],
+            "Fast Charge": ["65W Output Bank", "100W PD Bank", "SuperVOOC Power", "QC 4.0 Bank", "22.5W Huawei"]
+        },
+        "Wireless": {
+            "Pads": ["15W Qi Pad", "Double Pad", "Mini Pad", "Wood Finish Pad", "Fabric Pad"],
+            "Stands": ["Tilt Fast Charger", "MagSafe Stand", "Desk Clock Stand", "Cooling Fan Stand", "Folding Stand"],
+            "Car Mounts": ["Vent Clip Wireless", "Suction Wireless", "Auto-Clamping", "MagSafe Car Mount", "Dashboard Pad"],
+            "3-in-1": ["Apple Duo", "Travel 3-in-1", "Vertical Station", "MagSafe Base", "Watch+Phone+Buds"],
+            "Furniture": ["Built-in Desk Pad", "Lamp Wireless", "Speaker Charger", "Nightstand Hub", "Mouse Pad Qi"]
+        },
+        "Surge Protectors": {
+            "Strip": ["4 Outlet 2 USB", "6 Outlet Heavy Duty", "Tower Strip", "Smart Strip WiFi", "Flat Plug Strip"],
+            "Wall Tap": ["3 Outlet Wall", "Swivel Outlet", "Nightlight Tap", "Travel Tap", "USB Wall Hub"],
+            "Industrial": ["Metal Case 10 Outlet", "Workshop Strip", "Outdoor Rated", "Racked Mount", "Long Cord Pro"],
+            "Smart Hubs": ["HomeKit Strip", "Alexa Power Hub", "USB Desktop Center", "Individual Switched", "Remote Controlled"],
+            "Minimalist": ["Cube Tap", "Donut Strip", "Hidden Desk Mount", "Under Table Hub", "Designer Color"]
+        }
     }
 };
 
+// UI Elements
 const categorySelect = document.getElementById("categorySelect");
 const subSelect = document.getElementById("subSelect");
 const typeSelect = document.getElementById("typeSelect");
@@ -268,14 +402,21 @@ const typeSelect = document.getElementById("typeSelect");
 const categoryBtns = document.getElementById("categoryBtns");
 const subBtns = document.getElementById("subBtns");
 const typeBtns = document.getElementById("typeBtns");
+const sellingBtns = document.getElementById("sellingBtns");
 
-// Init
+// INITIALIZATION: Runs when page loads
 loadCategories();
 
-function loadCategories() {
-    categorySelect.innerHTML = `<option value="">-- Main Category --</option>`;
-    categoryBtns.innerHTML = "";
+/**
+ * FUNCTIONS FOR LOADING DATA LEVELS
+ * Each function:
+ * 1. Resets the current and following UI sections.
+ * 2. Populates both the Select element and the Scrollable Buttons.
+ */
 
+function loadCategories() {
+    categorySelect.innerHTML = `<option value="">-- Category --</option>`;
+    categoryBtns.innerHTML = "";
     Object.keys(data).forEach(cat => {
         categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
         categoryBtns.innerHTML += `<button class="btn" onclick="selectCategory('${cat}')">${cat}</button>`;
@@ -289,10 +430,12 @@ function selectCategory(cat) {
 }
 
 function loadSubCategories(cat) {
+    // Reset following levels
     subSelect.innerHTML = `<option value="">-- Sub Category --</option>`;
     subBtns.innerHTML = "";
-    typeSelect.innerHTML = `<option value="">-- Model Type --</option>`;
+    typeSelect.innerHTML = `<option value="">-- Type --</option>`;
     typeBtns.innerHTML = "";
+    sellingBtns.innerHTML = "";
 
     if (!cat || !data[cat]) return;
 
@@ -309,34 +452,56 @@ function selectSub(cat, sub) {
 }
 
 function loadTypes(cat, sub) {
-    typeSelect.innerHTML = `<option value="">-- Model Type --</option>`;
+    // Reset following levels
+    typeSelect.innerHTML = `<option value="">-- Type --</option>`;
     typeBtns.innerHTML = "";
+    sellingBtns.innerHTML = "";
 
     if (!cat || !sub || !data[cat][sub]) return;
 
-    data[cat][sub].forEach(type => {
+    Object.keys(data[cat][sub]).forEach(type => {
         typeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-        typeBtns.innerHTML += `<button class="btn" onclick="selectType('${type}')">${type}</button>`;
+        typeBtns.innerHTML += `<button class="btn" onclick="selectType('${cat}', '${sub}', '${type}')">${type}</button>`;
     });
 }
 
-function selectType(type) {
+function selectType(cat, sub, type) {
     typeSelect.value = type;
     setActive(typeBtns, type);
+    loadSellingItems(cat, sub, type);
 }
 
-/* Event Listeners */
+function loadSellingItems(cat, sub, type) {
+    // Clear selling list
+    sellingBtns.innerHTML = "";
+    if (!cat || !sub || !type || !data[cat][sub][type]) return;
+
+    // Display as wide scrollable row
+    data[cat][sub][type].forEach(item => {
+        sellingBtns.innerHTML += `<button class="btn" onclick="selectFinalItem('${item}')">${item}</button>`;
+    });
+}
+
+function selectFinalItem(item) {
+    setActive(sellingBtns, item);
+}
+
+/** * EVENT LISTENERS: Sync Select Dropdowns with Button Selections 
+ */
 categorySelect.onchange = () => selectCategory(categorySelect.value);
 subSelect.onchange = () => selectSub(categorySelect.value, subSelect.value);
-typeSelect.onchange = () => selectType(typeSelect.value);
+typeSelect.onchange = () => selectType(categorySelect.value, subSelect.value, typeSelect.value);
 
-/* UI Helpers */
+/**
+ * UI HELPERS: Handles visual feedback (active class) and scrolling
+ */
 function setActive(container, text) {
+    // Update visual "active" state for buttons
     container.querySelectorAll(".btn").forEach(btn => {
         btn.classList.toggle("active", btn.innerText === text);
     });
     
-    // Auto-scroll active button into view
+    // Auto-scroll the container so the active item is visible
     const activeBtn = Array.from(container.querySelectorAll(".btn")).find(b => b.innerText === text);
     if (activeBtn) {
         activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -344,6 +509,7 @@ function setActive(container, text) {
 }
 
 function scrollBox(id, value) {
+    // Used by arrow buttons to manually scroll left/right
     document.getElementById(id).scrollBy({ left: value, behavior: "smooth" });
 }
 </script>
