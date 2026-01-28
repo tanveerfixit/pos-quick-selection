@@ -1,385 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <title>TechPro POS Filter</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechStore POS Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .no-scrollbar { -ms-overflow-style: none;  scrollbar-width: none; }
-        
-        /* Custom horizontal scroll styling */
-        .scroll-container {
+        :root {
+            --primary: #1a1a1a;
+            --accent: #007bff;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --border: #e1e4e8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            padding: 20px;
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--primary);
+        }
+
+        /* Unified Filter Bar - No separate boxes */
+        .filter-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 10px;
+            background: var(--white);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .filter-section {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+
+        .scroll-wrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .arrow {
+            background: transparent;
+            color: var(--primary);
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px;
+            transition: all 0.2s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+        }
+
+        .arrow:hover {
+            opacity: 1;
+            color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .scroll-area {
+            display: flex;
+            gap: 6px;
             overflow-x: auto;
-            gap: 0.5rem;
-            padding-bottom: 4px;
-            -webkit-overflow-scrolling: touch;
+            padding: 4px 0;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            width: 100%;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .btn {
+            min-width: fit-content;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-weight: 500;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #666;
+        }
+
+        .btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .btn.active {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .filter-bar { grid-template-columns: 1fr; }
         }
     </style>
 </head>
+<body>
 
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<div class="container">
+    <div class="header">
+        <h1>Inventory Filter</h1>
+    </div>
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+    <div class="filter-bar">
+        <!-- CATEGORY -->
+        <div class="filter-section">
+            <select id="categorySelect"></select>
+            <div class="scroll-wrapper">
+                <button class="arrow" onclick="scrollBox('categoryBtns', -250)">&#10094;</button>
+                <div class="scroll-area" id="categoryBtns"></div>
+                <button class="arrow" onclick="scrollBox('categoryBtns', 250)">&#10095;</button>
             </div>
-            <h1 class="text-xl font-bold tracking-tight">TechStore <span class="text-blue-600">POS</span></h1>
         </div>
-        <div id="currentTime" class="text-sm font-medium text-slate-500 hidden md:block"></div>
-    </header>
 
-    <!-- Main Container: Full width, no max-width box -->
-    <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6">
-        
-        <!-- LEFT: Selection & Search (Adjusted to 9 columns for wider workspace) -->
-        <section class="lg:col-span-8 xl:col-span-9 space-y-6">
-            
-            <!-- Hierarchy Pickers -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-                <div class="space-y-6">
-                    <!-- Category Selection -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">1. Category</label>
-                            <select id="categorySelect" onchange="selectCategory(this.value)" class="text-xs bg-transparent border-none font-bold text-blue-600 focus:ring-0 cursor-pointer"></select>
-                        </div>
-                        <div id="categoryQuickButtons" class="scroll-container no-scrollbar"></div>
-                    </div>
-
-                    <!-- SubCategory Selection -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">2. Sub-Category</label>
-                            <select id="subCategorySelect" onchange="selectSubCategory(this.value)" class="text-xs bg-transparent border-none font-bold text-green-600 focus:ring-0 cursor-pointer disabled:opacity-0"></select>
-                        </div>
-                        <div id="subCategoryQuickButtons" class="scroll-container no-scrollbar"></div>
-                    </div>
-
-                    <!-- Type Selection -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">3. Model / Product Type</label>
-                            <select id="typeSelect" onchange="selectType(this.value)" class="text-xs bg-transparent border-none font-bold text-purple-600 focus:ring-0 cursor-pointer disabled:opacity-0"></select>
-                        </div>
-                        <div id="typeQuickButtons" class="scroll-container no-scrollbar"></div>
-                    </div>
-                </div>
-
-                <!-- Product Search & Pricing -->
-                <div class="pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                    <div class="md:col-span-6 relative">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Search Catalog</label>
-                        <input id="productNameInput" type="text" placeholder="Start typing brand or model..." 
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-                        <div id="searchResults" class="absolute w-full bg-white border border-slate-200 rounded-xl mt-2 hidden shadow-2xl z-50 max-h-64 overflow-y-auto no-scrollbar"></div>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Price ($)</label>
-                        <input id="priceInput" type="number" step="0.01" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Qty</label>
-                        <input id="qtyInput" type="number" min="1" value="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <button onclick="addProduct()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            Add
-                        </button>
-                    </div>
-                </div>
+        <!-- SUB CATEGORY -->
+        <div class="filter-section">
+            <select id="subSelect"></select>
+            <div class="scroll-wrapper">
+                <button class="arrow" onclick="scrollBox('subBtns', -250)">&#10094;</button>
+                <div class="scroll-area" id="subBtns"></div>
+                <button class="arrow" onclick="scrollBox('subBtns', 250)">&#10095;</button>
             </div>
+        </div>
 
-            <!-- Status Message Toast Area -->
-            <div id="statusMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
-        </section>
-
-        <!-- RIGHT: Cart / Invoice (Narrower 3-4 columns) -->
-        <section class="lg:col-span-4 xl:col-span-3 flex flex-col h-[calc(100vh-140px)]">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h2 class="font-bold text-lg flex items-center gap-2">
-                        Order
-                        <span id="cartBadge" class="bg-slate-100 text-slate-600 text-xs py-0.5 px-2 rounded-full">0</span>
-                    </h2>
-                    <button onclick="clearCart()" class="text-xs font-semibold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Clear</button>
-                </div>
-
-                <!-- Cart Items Scroll Area -->
-                <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
-                    <!-- Empty State -->
-                    <div id="emptyCartState" class="flex flex-col items-center justify-center h-full text-slate-400 space-y-2 opacity-60">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <p class="text-xs">No items in order</p>
-                    </div>
-                </div>
-
-                <!-- Totals Section -->
-                <div class="p-6 bg-slate-50 border-t border-slate-200 space-y-3">
-                    <div class="flex justify-between text-xs text-slate-500 uppercase font-bold tracking-tight">
-                        <span>Subtotal</span>
-                        <span id="subtotalLabel">$0.00</span>
-                    </div>
-                    <div class="flex justify-between text-xs text-slate-500 uppercase font-bold tracking-tight">
-                        <span>Tax (8%)</span>
-                        <span id="taxLabel">$0.00</span>
-                    </div>
-                    <div class="flex justify-between text-lg font-extrabold text-slate-900 pt-2 border-t border-slate-200">
-                        <span>Total</span>
-                        <span id="totalLabel" class="text-blue-600">$0.00</span>
-                    </div>
-                    <button id="checkoutBtn" disabled class="w-full mt-4 bg-slate-900 disabled:bg-slate-300 text-white font-bold py-4 rounded-xl shadow-xl transition-all active:scale-95 uppercase tracking-widest text-xs">
-                        Process Payment
-                    </button>
-                </div>
+        <!-- TYPE -->
+        <div class="filter-section">
+            <select id="typeSelect"></select>
+            <div class="scroll-wrapper">
+                <button class="arrow" onclick="scrollBox('typeBtns', -250)">&#10094;</button>
+                <div class="scroll-area" id="typeBtns"></div>
+                <button class="arrow" onclick="scrollBox('typeBtns', 250)">&#10095;</button>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
+</div>
 
-    <script>
-        // ----------------------
-        // DATA LAYER
-        // ----------------------
-        const initialMockData = [
-            { category: 'Phones', subCategories: [
-                { name: 'iPhones', types: [ {name:'iPhone 13', brands:['Apple'], basePrice: 599}, {name:'iPhone 14', brands:['Apple'], basePrice: 699}, {name:'iPhone 15', brands:['Apple'], basePrice: 799}, {name:'iPhone 16', brands:['Apple'], basePrice: 899} ] },
-                { name: 'Samsung', types: [ {name:'Galaxy A33', brands:['Samsung'], basePrice: 299}, {name:'Galaxy A34', brands:['Samsung'], basePrice: 349}, {name:'Galaxy S24', brands:['Samsung'], basePrice: 799} ] },
-                { name: 'Redmi', types: [ {name:'Note 12', brands:['Xiaomi'], basePrice: 199}, {name:'Note 13 Pro', brands:['Xiaomi'], basePrice: 299} ] },
-                { name: 'Pixels', types: [ {name:'Pixel 7', brands:['Google'], basePrice: 499}, {name:'Pixel 8 Pro', brands:['Google'], basePrice: 999} ] }
-            ]},
-            { category: 'Laptops', subCategories: [
-                { name: 'Dell', types: [ {name:'XPS 13', brands:['Dell'], basePrice: 1099}, {name:'Inspiron', brands:['Dell'], basePrice: 649} ] },
-                { name: 'Hp', types: [ {name:'Spectre x360', brands:['HP'], basePrice: 1249}, {name// ... rest of the same logic
-                : 'Pavilion', brands:['HP'], basePrice: 599} ] },
-                { name: 'ChromeBook', types: [ {name:'Pixelbook Go', brands:['Google'], basePrice: 649}, {name:'Acer Chromebook', brands:['Acer'], basePrice: 299} ] },
-                { name: 'Lenovo', types: [ {name:'ThinkPad X1', brands:['Lenovo'], basePrice: 1399}, {name:'Yoga 7i', brands:['Lenovo'], basePrice: 849} ] }
-            ]},
-            { category: 'Tablets', subCategories: [
-                { name: 'iPad', types: [ {name:'iPad Air', brands:['Apple'], basePrice: 599}, {name:'iPad Pro', brands:['Apple'], basePrice: 799} ] },
-                { name: 'Galaxy', types: [ {name:'Tab S9', brands:['Samsung'], basePrice: 699}, {name:'Tab A8', brands:['Samsung'], basePrice: 229} ] },
-                { name: 'Android', types: [ {name:'Pixel Tablet', brands:['Google'], basePrice: 499}, {name:'Lenovo Tab', brands:['Lenovo'], basePrice: 179} ] }
-            ]},
-            { category: 'Audio', subCategories: [
-                { name: 'BT Speakers', types: [ {name:'Flip 6', brands:['JBL'], basePrice: 129}, {name:'SoundLink', brands:['Bose'], basePrice: 149} ] },
-                { name: 'Wired Headphones', types: [ {name:'MDR-7506', brands:['Sony'], basePrice: 99} ] },
-                { name: 'Bluetooth Headphones', types: [ {name:'WH-1000XM5', brands:['Sony'], basePrice: 399}, {name:'QC45', brands:['Bose'], basePrice: 329} ] },
-                { name: 'True Wireless Earbuds (TWS)', types: [ {name:'WF-1000XM5', brands:['Sony'], basePrice: 299}, {name:'Buds 2 Pro', brands:['Samsung'], basePrice: 199} ] },
-                { name: 'AirPods', types: [ {name:'AirPods Pro 2', brands:['Apple'], basePrice: 249}, {name:'AirPods 3', brands:['Apple'], basePrice: 169} ] },
-                { name: 'EarPods', types: [ {name:'EarPods USB-C', brands:['Apple'], basePrice: 19} ] }
-            ]},
-            { category: 'Accessories', subCategories: [
-                { name: 'Cases', types: [ {name:'Silicone Case', brands:['Generic'], basePrice: 15} ] },
-                { name: 'Plugs/Charger', types: [ {name:'20W Adapter', brands:['Apple'], basePrice: 19} ] },
-                { name: 'Cables', types: [ {name:'USB-C to C', brands:['Anker'], basePrice: 12} ] },
-                { name: 'Screen Protection', types: [ {name:'Tempered Glass', brands:['Generic'], basePrice: 10} ] },
-                { name: 'Phone Holder', types: [ {name:'MagSafe Mount', brands:['Belkin'], basePrice: 29} ] },
-                { name: 'Adapter', types: [ {name:'USB-C Hub', brands:['Satechi'], basePrice: 59} ] },
-                { name: 'Power Bank', types: [ {name:'20k mAh Bank', brands:['Anker'], basePrice: 49} ] },
-                { name: 'Selfi Stick', types: [ {name:'Tripod Stick', brands:['Generic'], basePrice: 25} ] },
-                { name: 'Gaming Controller', types: [ {name:'DualSense', brands:['Sony'], basePrice: 69}, {name:'Xbox Controller', brands:['MS'], basePrice: 59} ] }
-            ]},
-            { category: 'Services', subCategories: [
-                { name: 'Repair', types: [ {name:'Screen Repair', brands:['Service'], basePrice: 149}, {name:'Battery Swap', brands:['Service'], basePrice: 79} ] },
-                { name: 'Warranty', types: [ {name:'Extended 1yr', brands:['Care'], basePrice: 99} ] }
-            ]}
-        ];
+<script>
+const data = {
+    "Smartphones": {
+        "Apple iPhone": ["iPhone 15 Pro Max", "iPhone 15 Plus", "iPhone 14 Pro", "iPhone 13 Mini", "iPhone SE 2022", "iPhone 12", "iPhone 11", "iPhone XR"],
+        "Samsung Galaxy": ["S24 Ultra", "S23 Plus", "Z Fold 5", "Z Flip 5", "A54 5G", "A34", "M54", "S21 FE"],
+        "Google Pixel": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a", "Pixel 7 Pro", "Pixel 6", "Pixel Fold", "Pixel 5", "Pixel 4a"],
+        "Xiaomi / Redmi": ["Xiaomi 14 Pro", "Redmi Note 13 Pro", "Poco F5", "Redmi 12C", "Xiaomi 13T", "Black Shark 5", "Mi 11 Ultra", "Redmi A2"],
+        "OnePlus": ["OnePlus 12", "OnePlus 11R", "Nord CE 3", "Nord N30", "OnePlus 10 Pro", "OnePlus Open", "Nord 2T", "OnePlus 9"]
+    },
+    "Laptops": {
+        "Apple MacBook": ["MacBook Pro 16 M3", "MacBook Pro 14 M3", "MacBook Air 15 M2", "MacBook Air 13 M2", "MacBook Pro 13 M2", "MacBook Air M1", "MacBook Pro 16 M1", "MacBook Pro 14 M2"],
+        "Gaming Laptops": ["ASUS ROG Strix", "MSI Raider GE78", "Razer Blade 16", "Alienware m18", "HP Victus 16", "Lenovo Legion Slim", "Acer Nitro 5", "Gigabyte Aorus"],
+        "Business Laptops": ["ThinkPad X1 Carbon", "Dell XPS 13", "HP EliteBook", "Surface Laptop 5", "ASUS Zenbook S13", "LG Gram 17", "Latitude 7440", "Dynabook Portégé"],
+        "Chromebooks": ["HP Chromebook x360", "Acer Spin 714", "ASUS Flip CX5", "Lenovo IdeaPad 3i", "Samsung Galaxy 2", "Pixelbook Go", "Dell 3110", "Acer C734"],
+        "Budget Laptops": ["Acer Aspire 5", "HP Laptop 15", "Dell Inspiron 15", "Lenovo IdeaPad 1", "ASUS Vivobook", "Samsung Galaxy Book", "Gateway 14.1", "Chuwi HeroBook"]
+    },
+    "Tablets": {
+        "iPad": ["iPad Pro 12.9", "iPad Air 5", "iPad Mini 6", "iPad 10.9 (10th)", "iPad 10.2 (9th)", "iPad Pro 11", "iPad Air 4", "iPad Pro (M2)"],
+        "Samsung Tab": ["Galaxy Tab S9 Ultra", "Tab S9 FE", "Tab A8", "Tab S8 Plus", "Tab S7 FE", "Tab A7 Lite", "Tab Active 4", "Tab S6 Lite"],
+        "Microsoft Surface": ["Surface Pro 9", "Surface Go 3", "Surface Pro 8", "Surface Pro X", "Surface Laptop Studio", "Surface Duo 2", "Surface Book 3", "Surface Go 2"],
+        "Android Tablets": ["Xiaomi Pad 6", "Lenovo P12 Pro", "OnePlus Pad", "Realme Pad", "Huawei MatePad", "Honor Pad 8", "Nokia T20", "Pixel Tablet"],
+        "Graphics Tablets": ["Wacom Intuos", "Huion Kamvas 13", "XP-Pen Artist", "Wacom Cintiq", "Gaomon PD1161", "UGEE M708", "Huion Inspiroy", "Wacom One"]
+    },
+    "Audio & Sound": {
+        "Earbuds": ["AirPods Pro 2", "Sony WF-1000XM5", "Galaxy Buds 2 Pro", "Pixel Buds Pro", "Bose QC II", "Sennheiser MTW 3", "Jabra Elite 8", "Beats Studio Buds"],
+        "Over-Ear": ["Sony WH-1000XM5", "Bose QC45", "AirPods Max", "Sennheiser Momentum 4", "Beats Studio Pro", "Audio-Technica M50x", "JBL Live 660", "Bowers PX7"],
+        "Gaming Headsets": ["SteelSeries Arctis Nova", "HyperX Cloud III", "Logitech G Pro X", "Razer BlackShark V2", "Corsair HS80", "Turtle Beach Stealth", "Astro A50", "EPOS GSP 600"],
+        "Bluetooth Speakers": ["JBL Flip 6", "Marshall Emberton", "UE Boom 3", "Sonos Roam", "Bose SoundLink", "Sony XB13", "Anker Soundcore 2", "Harman Kardon Onyx"],
+        "Home Audio": ["Sonos Arc", "Samsung HW-Q990C", "Sony HT-A7000", "Yamaha SR-B20A", "Bose Smart Soundbar", "LG S95QR", "Denon DHT-S216", "Klipsch Cinema"]
+    },
+    "Wearables": {
+        "Smartwatches": ["Apple Watch Ultra 2", "Apple Watch S9", "Galaxy Watch 6", "Pixel Watch 2", "Garmin Venu 3", "TicWatch Pro 5", "Huawei Watch GT4", "Fossil Gen 6"],
+        "Fitness Bands": ["Fitbit Charge 6", "Xiaomi Mi Band 8", "Garmin vivosmart 5", "Huawei Band 8", "Fitbit Luxe", "Samsung Galaxy Fit 3", "Amazfit Band 7", "Whoop 4.0"],
+        "Luxury Watches": ["Tag Heuer Connected", "Montblanc Summit", "Garmin Marq", "Withings ScanWatch", "Apple Watch Hermes", "Tissot T-Touch", "Hublot Big Bang e", "Louis Vuitton Tambour"],
+        "Kids Trackers": ["Garmin vivofit jr 3", "Fitbit Ace 3", "Apple Watch SE", "Verizon Gizmo", "TickTalk 4", "Xplora X5", "Cosmo JrTrack", "Gabb Watch"],
+        "Smart Rings": ["Oura Ring Gen3", "Ultrahuman Ring", "RingConn", "Circular Ring", "Evie Ring", "Samsung Galaxy Ring", "Fitbit Ring concept", "Movano Evie"]
+    },
+    "Storage": {
+        "External SSD": ["Samsung T7 Shield", "SanDisk Extreme", "Crucial X8", "WD My Passport", "Seagate Fast SSD", "Kingston XS2000", "Lacie Mobile Drive", "Sabrent Rocket"],
+        "Internal SSD": ["Samsung 990 Pro", "WD Black SN850X", "Crucial T700", "Seagate FireCuda", "SK Hynix P41", "Kingston KC3000", "Sabrent Rocket 4 Plus", "Lexar NM790"],
+        "Hard Drives": ["WD Elements 4TB", "Seagate Expansion", "Toshiba Canvio", "Lacie Rugged", "WD My Book", "Seagate Backup Plus", "G-Technology Armor", "ADATA HD710"],
+        "Flash Drives": ["SanDisk Ultra Luxe", "Samsung Bar Plus", "Kingston DataTraveler", "PNY Turbo", "Corsair Flash Voyager", "Lexar JumpDrive", "SanDisk iXpand", "Sony USM-BA2"],
+        "Memory Cards": ["SanDisk Extreme Pro", "Samsung EVO Select", "Lexar Professional", "Sony Tough G", "Kingston Canvas", "ProGrade Digital", "SanDisk Nintendo", "PNY Elite-X"]
+    },
+    "Gaming": {
+        "Consoles": ["PlayStation 5", "Xbox Series X", "Nintendo Switch OLED", "Steam Deck", "ROG Ally", "PS5 Digital", "Xbox Series S", "Switch Lite"],
+        "Controllers": ["DualSense Edge", "Xbox Elite Series 2", "Nintendo Pro Controller", "Scuf Instinct", "Razer Wolverine", "8BitDo Pro 2", "Turtle Beach Recon", "Gulikit KingKong 2"],
+        "PC Gear": ["Logitech G502X", "Razer DeathAdder V3", "SteelSeries Apex Pro", "Corsair K70", "HyperX Pulsefire", "Finalmouse Starlight", "Keychron Q1", "Glorious Model O"],
+        "VR / AR": ["Meta Quest 3", "PSVR 2", "Valve Index", "HP Reverb G2", "Pico 4", "HTC Vive XR", "Apple Vision Pro", "Meta Quest Pro"],
+        "Streaming": ["Elgato Stream Deck", "Razer Seiren V3", "Logitech Brio", "Blue Yeti", "Elgato Facecam", "Shure MV7", "Rode NT-USB", "AverMedia Live"]
+    },
+    "Network & Smart Home": {
+        "Routers": ["TP-Link Archer AXE75", "ASUS RT-AX88U", "Netgear Nighthawk", "Linksys Hydra", "Google Nest WiFi Pro", "Eero 6 Plus", "Ubiquiti UniFi", "Synology RT6600"],
+        "Smart Security": ["Ring Video Doorbell", "Arlo Pro 5", "Nest Cam", "Eufy Cam 3", "Wyze Cam v3", "Blink Outdoor", "TP-Link Tapo", "Reolink Argus"],
+        "Smart Lighting": ["Philips Hue Kit", "Nanoleaf Shapes", "Govee Glide", "LIFX Beam", "TP-Link Kasa", "Wiz Smart Bulb", "Sengled Color", "Yeelight Strip"],
+        "Hubs & Speakers": ["Echo Show 10", "Google Nest Hub", "HomePod Second Gen", "Apple TV 4K", "Fire TV Cube", "Nvidia Shield TV", "Roku Ultra", "Samsung SmartThings"],
+        "Smart Plugs": ["TP-Link Kasa Mini", "Wemo Smart Plug", "Shelly Plug", "Meross Outdoor", "Eve Energy", "Philips Hue Plug", "D-Link DSP", "Gosund Mini"]
+    },
+    "Photography": {
+        "Cameras": ["Sony A7 IV", "Canon EOS R6", "Nikon Z6 II", "Fujifilm X-T5", "Panasonic GH6", "Sony ZV-E10", "GoPro Hero 12", "DJI Osmo Pocket 3"],
+        "Lenses": ["Sony 24-70mm GM", "Canon RF 50mm", "Nikon Z 85mm", "Sigma 18-50mm", "Tamron 28-75mm", "Sony 70-200mm", "Fujinon 35mm", "Canon 35mm RF"],
+        "Gimbals": ["DJI RS 3 Pro", "Zhiyun Crane 4", "Insta360 Flow", "DJI Osmo Mobile 6", "Feiyu Scorp", "Moza Air 2", "Zhiyun Smooth 5", "DJI RS 3 Mini"],
+        "Drones": ["DJI Mavic 3 Pro", "DJI Mini 4 Pro", "Autel EVO Lite", "DJI Air 3", "Potensic Atom", "Holy Stone HS720", "DJI Avata", "Ryze Tello"],
+        "Accessories": ["Peak Design Strap", "Rode VideoMic", "Manfrotto Tripod", "Joby GorillaPod", "SanDisk V90 Card", "Godox V1 Flash", "Lowepro Bag", "SmallRig Cage"]
+    },
+    "Chargers & Power": {
+        "Wall Chargers": ["Anker 735 GaN", "Apple 20W USB-C", "Samsung 45W Travel", "Satechi 108W", "UGREEN 65W Nexode", "Belkin 30W", "Baseus 100W", "Google 30W"],
+        "Power Banks": ["Anker 737 PowerCore", "Baseus 20000mAh", "Samsung 25W Pack", "Mophie Powerstation", "Xiaomi Mi Bank", "Belkin BoostCharge", "Goal Zero Sherpa", "Nimble Champ"],
+        "Wireless": ["Apple MagSafe", "Samsung Duo Pad", "Belkin 3-in-1", "Anker Magnetic", "Satechi Trio", "Logitech Powered", "Nomad Base Station", "Spigen ArcField"],
+        "Cables": ["Apple USB-C 2m", "Anker PowerLine III", "Belkin Braided", "Native Union Belt", "Nomad Kevlar", "Satechi USB-4", "UGREEN Thunderbolt", "CableMatters Pro"],
+        "Car Power": ["Scosche PowerVolt", "Anker Roav", "Nitecore VCL10", "Belkin Car Charger", "Baseus 65W Car", "Spigen SteadiBoost", "Aukey Flush", "iOttie Wireless"]
+    }
+};
 
-        let productList = [];
-        let cart = [];
-        let uiState = {
-            selectedCategory: null,
-            selectedSubCategory: null,
-            selectedType: null,
-            currentProduct: null
-        };
+const categorySelect = document.getElementById("categorySelect");
+const subSelect = document.getElementById("subSelect");
+const typeSelect = document.getElementById("typeSelect");
 
-        const els = {
-            categorySelect: document.getElementById('categorySelect'),
-            subCategorySelect: document.getElementById('subCategorySelect'),
-            typeSelect: document.getElementById('typeSelect'),
-            catBtns: document.getElementById('categoryQuickButtons'),
-            subBtns: document.getElementById('subCategoryQuickButtons'),
-            typeBtns: document.getElementById('typeQuickButtons'),
-            nameInput: document.getElementById('productNameInput'),
-            priceInput: document.getElementById('priceInput'),
-            qtyInput: document.getElementById('qtyInput'),
-            results: document.getElementById('searchResults'),
-            cartItems: document.getElementById('cartItems'),
-            subtotal: document.getElementById('subtotalLabel'),
-            tax: document.getElementById('taxLabel'),
-            total: document.getElementById('totalLabel'),
-            cartBadge: document.getElementById('cartBadge'),
-            checkoutBtn: document.getElementById('checkoutBtn'),
-            status: document.getElementById('statusMessage'),
-            empty: document.getElementById('emptyCartState')
-        };
+const categoryBtns = document.getElementById("categoryBtns");
+const subBtns = document.getElementById("subBtns");
+const typeBtns = document.getElementById("typeBtns");
 
-        function init() {
-            flattenData();
-            renderPickers();
-            updateTime();
-            setInterval(updateTime, 1000);
-            document.addEventListener('keypress', (e) => { if(e.key === 'Enter') addProduct(); });
-        }
+// Init
+loadCategories();
 
-        function flattenData() {
-            productList = [];
-            initialMockData.forEach(cat => {
-                cat.subCategories.forEach(sub => {
-                    sub.types.forEach(t => {
-                        t.brands.forEach(b => {
-                            productList.push({
-                                id: Math.random().toString(36).substr(2, 9),
-                                name: `${b} ${t.name}`,
-                                brand: b,
-                                type: t.name,
-                                category: cat.category,
-                                subCategory: sub.name,
-                                price: t.basePrice || 0
-                            });
-                        });
-                    });
-                });
-            });
-        }
+function loadCategories() {
+    categorySelect.innerHTML = `<option value="">-- Main Category --</option>`;
+    categoryBtns.innerHTML = "";
 
-        function renderPickers() {
-            els.categorySelect.innerHTML = `<option value="">Select Category</option>` + 
-                initialMockData.map(c => `<option value="${c.category}">${c.category}</option>`).join('');
-            renderQuickButtons();
-            updateDependentPickers();
-        }
+    Object.keys(data).forEach(cat => {
+        categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+        categoryBtns.innerHTML += `<button class="btn" onclick="selectCategory('${cat}')">${cat}</button>`;
+    });
+}
 
-        function updateDependentPickers() {
-            const catData = initialMockData.find(c => c.category === uiState.selectedCategory);
-            els.subCategorySelect.disabled = !catData;
-            els.subCategorySelect.innerHTML = `<option value="">Select Sub</option>` + 
-                (catData ? catData.subCategories.map(s => `<option value="${s.name}">${s.name}</option>`).join('') : '');
-            const subData = catData?.subCategories.find(s => s.name === uiState.selectedSubCategory);
-            els.typeSelect.disabled = !subData;
-            els.typeSelect.innerHTML = `<option value="">Select Type</option>` + 
-                (subData ? subData.types.map(t => `<option value="${t.name}">${t.name}</option>`).join('') : '');
-            els.categorySelect.value = uiState.selectedCategory || '';
-            els.subCategorySelect.value = uiState.selectedSubCategory || '';
-            els.typeSelect.value = uiState.selectedType || '';
-            renderQuickButtons();
-        }
+function selectCategory(cat) {
+    categorySelect.value = cat;
+    setActive(categoryBtns, cat);
+    loadSubCategories(cat);
+}
 
-        function renderQuickButtons() {
-            els.catBtns.innerHTML = initialMockData.map(c => {
-                const isActive = uiState.selectedCategory === c.category;
-                return `<button onclick="selectCategory('${c.category}')" class="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase rounded-xl border transition-all whitespace-nowrap ${isActive ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-200'}">${c.category}</button>`;
-            }).join('');
-            const catData = initialMockData.find(c => c.category === uiState.selectedCategory);
-            els.subBtns.innerHTML = catData ? catData.subCategories.map(s => {
-                const isActive = uiState.selectedSubCategory === s.name;
-                return `<button onclick="selectSubCategory('${s.name}')" class="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase rounded-xl border transition-all whitespace-nowrap ${isActive ? 'bg-green-600 border-green-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-green-50 hover:border-green-200'}">${s.name}</button>`;
-            }).join('') : `<div class="text-xs text-slate-300 py-2 italic">Select a category first</div>`;
-            const subData = catData?.subCategories.find(s => s.name === uiState.selectedSubCategory);
-            els.typeBtns.innerHTML = subData ? subData.types.map(t => {
-                const isActive = uiState.selectedType === t.name;
-                return `<button onclick="selectType('${t.name}')" class="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase rounded-xl border transition-all whitespace-nowrap ${isActive ? 'bg-purple-600 border-purple-600 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:bg-purple-50 hover:border-purple-200'}">${t.name}</button>`;
-            }).join('') : `<div class="text-xs text-slate-300 py-2 italic">Select a sub-category first</div>`;
-        }
+function loadSubCategories(cat) {
+    subSelect.innerHTML = `<option value="">-- Sub Category --</option>`;
+    subBtns.innerHTML = "";
+    typeSelect.innerHTML = `<option value="">-- Model Type --</option>`;
+    typeBtns.innerHTML = "";
 
-        window.selectCategory = (cat) => { uiState.selectedCategory = cat; uiState.selectedSubCategory = null; uiState.selectedType = null; updateDependentPickers(); autoFillProduct(); };
-        window.selectSubCategory = (sub) => { uiState.selectedSubCategory = sub; uiState.selectedType = null; updateDependentPickers(); autoFillProduct(); };
-        window.selectType = (type) => { uiState.selectedType = type; updateDependentPickers(); autoFillProduct(); };
+    if (!cat || !data[cat]) return;
 
-        function autoFillProduct() {
-            const match = productList.find(p => p.category === uiState.selectedCategory && p.subCategory === uiState.selectedSubCategory && p.type === uiState.selectedType);
-            if(match) populateForm(match);
-        }
+    Object.keys(data[cat]).forEach(sub => {
+        subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+        subBtns.innerHTML += `<button class="btn" onclick="selectSub('${cat}','${sub}')">${sub}</button>`;
+    });
+}
 
-        function populateForm(product) {
-            uiState.currentProduct = product;
-            els.nameInput.value = product.name;
-            els.priceInput.value = product.price;
-            els.qtyInput.value = 1;
-            els.results.classList.add('hidden');
-        }
+function selectSub(cat, sub) {
+    subSelect.value = sub;
+    setActive(subBtns, sub);
+    loadTypes(cat, sub);
+}
 
-        els.nameInput.addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase().trim();
-            if(!q) { els.results.classList.add('hidden'); return; }
-            const hits = productList.filter(p => p.name.toLowerCase().includes(q));
-            els.results.innerHTML = hits.map(p => `
-                <div class="p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0" onclick='handleSearchSelect(${JSON.stringify(p)})'>
-                    <div class="font-bold text-sm text-slate-800">${p.name}</div>
-                    <div class="text-[10px] text-slate-400 uppercase font-bold">${p.category} • ${p.subCategory}</div>
-                </div>
-            `).join('');
-            els.results.classList.remove('hidden');
-        });
+function loadTypes(cat, sub) {
+    typeSelect.innerHTML = `<option value="">-- Model Type --</option>`;
+    typeBtns.innerHTML = "";
 
-        window.handleSearchSelect = (p) => { populateForm(p); uiState.selectedCategory = p.category; uiState.selectedSubCategory = p.subCategory; uiState.selectedType = p.type; updateDependentPickers(); };
+    if (!cat || !sub || !data[cat][sub]) return;
 
-        window.addProduct = () => {
-            const name = els.nameInput.value;
-            const price = parseFloat(els.priceInput.value);
-            const qty = parseInt(els.qtyInput.value);
-            if(!name || isNaN(price) || isNaN(qty) || qty < 1) { showStatus('Missing product info', 'error'); return; }
-            cart.push({ cartId: Date.now(), name, price, qty, total: price * qty });
-            renderCart();
-            showStatus(`Added ${name}`, 'success');
-            els.nameInput.value = '';
-            els.qtyInput.value = 1;
-        };
+    data[cat][sub].forEach(type => {
+        typeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+        typeBtns.innerHTML += `<button class="btn" onclick="selectType('${type}')">${type}</button>`;
+    });
+}
 
-        window.removeFromCart = (cartId) => { cart = cart.filter(item => item.cartId !== cartId); renderCart(); };
-        window.clearCart = () => { cart = []; renderCart(); };
+function selectType(type) {
+    typeSelect.value = type;
+    setActive(typeBtns, type);
+}
 
-        function renderCart() {
-            els.cartBadge.textContent = cart.length;
-            els.checkoutBtn.disabled = cart.length === 0;
-            els.empty.style.display = cart.length === 0 ? 'flex' : 'none';
-            els.cartItems.innerHTML = cart.map(item => `
-                <div class="bg-white border border-slate-100 p-3 rounded-xl shadow-sm flex justify-between items-center animate-in fade-in slide-in-from-right-4 duration-200">
-                    <div class="max-w-[150px]">
-                        <div class="font-bold text-[13px] text-slate-800 truncate">${item.name}</div>
-                        <div class="text-[10px] text-slate-400 font-medium">${item.qty} × $${item.price.toFixed(2)}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="font-bold text-blue-600 text-xs">$${item.total.toFixed(2)}</div>
-                        <button onclick="removeFromCart(${item.cartId})" class="p-1.5 text-slate-300 hover:text-red-500 transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-            const sub = cart.reduce((acc, i) => acc + i.total, 0);
-            const tax = sub * 0.08;
-            const total = sub + tax;
-            els.subtotal.textContent = `$${sub.toFixed(2)}`;
-            els.tax.textContent = `$${tax.toFixed(2)}`;
-            els.total.textContent = `$${total.toFixed(2)}`;
-        }
+/* Event Listeners */
+categorySelect.onchange = () => selectCategory(categorySelect.value);
+subSelect.onchange = () => selectSub(categorySelect.value, subSelect.value);
+typeSelect.onchange = () => selectType(typeSelect.value);
 
-        function showStatus(msg, type) {
-            els.status.textContent = msg;
-            els.status.className = `p-4 rounded-xl text-sm font-bold text-center fixed bottom-6 left-6 z-[100] shadow-2xl animate-bounce ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
-            els.status.classList.remove('hidden');
-            setTimeout(() => els.status.classList.add('hidden'), 3000);
-        }
+/* UI Helpers */
+function setActive(container, text) {
+    container.querySelectorAll(".btn").forEach(btn => {
+        btn.classList.toggle("active", btn.innerText === text);
+    });
+    
+    // Auto-scroll active button into view
+    const activeBtn = Array.from(container.querySelectorAll(".btn")).find(b => b.innerText === text);
+    if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+}
 
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent = now.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
+function scrollBox(id, value) {
+    document.getElementById(id).scrollBy({ left: value, behavior: "smooth" });
+}
+</script>
 
-        init();
-    </script>
 </body>
 </html>
